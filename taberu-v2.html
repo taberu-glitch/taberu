@@ -975,9 +975,8 @@ async function loadRestaurantsFromDB() {
   try {
     const { data, error } = await sb.from('restaurants').select('*').order('rating', { ascending: false });
     if (error || !data?.length) return false;
-    DB.length = 0;
-    data.forEach(r => {
-      DB.push({
+    // Supabase has data — replace seed data
+    const mapped = data.map(r => ({
         id: r.id, name: r.name, city: r.city, area: r.area,
         category: r.category, emoji: r.emoji || '🍽️',
         price: r.price_range, rating: r.rating || 0,
@@ -990,8 +989,9 @@ async function loadRestaurantsFromDB() {
         reservation_fee: r.reservation_fee || 440,
         mapX: r.map_x || 40, mapY: r.map_y || 40,
         photos: r.photos || [], reviews: [], _sbId: r.id
-      });
-    });
+    }));
+    DB.length = 0;
+    mapped.forEach(r => DB.push(r));
     return true;
   } catch(e) { return false; }
 }
