@@ -1419,9 +1419,10 @@ function renderCards(){
   document.getElementById('cardList').innerHTML=list.map((r,i)=>{
     const saved=isSaved(r.id);
     const badges=trustBadgesHtml(r.trust);
+    const rid = (r.id||'').trim();
     return `
-    <div class="rcard" style="animation-delay:${i*.04}s">
-      <div class="rcard-img" style="background:${BG_MAP[r.category]||'#f5f0e8'}" onclick="openDetail('${(r.id||'').trim()}')">
+    <div class="rcard" data-rid="${rid}" style="animation-delay:${i*.04}s">
+      <div class="rcard-img" style="background:${BG_MAP[r.category]||'#f5f0e8'}">
         ${r.photos.length?`<img class="rcard-photo" src="${r.photos[0]}" alt="" onerror="this.style.display='none'">`:
           `<span>${r.emoji}</span>`}
         ${i===0?'<div class="rcard-rank rk1">1</div>':i===1?'<div class="rcard-rank rk2">2</div>':i===2?'<div class="rcard-rank rk3">3</div>':''}
@@ -1430,11 +1431,11 @@ function renderCards(){
       <div class="rcard-body">
         <div>
           <div class="rcard-top">
-            <div class="rcard-name" onclick="openDetail('${(r.id||'').trim()}')">${r.name}</div>
-            <button class="save-btn ${saved?'saved':''}" onclick="toggleSave('${(r.id||'').trim()}')">${saved?'❤️':'🤍'}</button>
+            <div class="rcard-name">${r.name}</div>
+            <button class="save-btn ${saved?'saved':''}" data-action="save">${saved?'❤️':'🤍'}</button>
           </div>
-          <div class="rcard-loc" onclick="openDetail('${(r.id||'').trim()}')">📍 ${r.city}</div>
-          <div class="rcard-stars" onclick="openDetail('${(r.id||'').trim()}')">
+          <div class="rcard-loc">📍 ${r.city}</div>
+          <div class="rcard-stars">
             <span class="stars-gold">${starsHtml(r.rating)}</span>
             <span class="rating-val">${r.rating}</span>
             <span class="review-ct">(${r.reviewCount.toLocaleString()})</span>
@@ -1442,10 +1443,23 @@ function renderCards(){
           ${badges?`<div class="trust-badges">${badges}</div>`:''}
           <div class="rcard-tags">${r.tags.slice(0,3).map(t=>`<span class="rtag">${t}</span>`).join('')}</div>
         </div>
-        <div class="rcard-preview" onclick="openDetail('${(r.id||'').trim()}')">${(r.tips||r.reviews[0]?.text||'').slice(0,75)}…</div>
+        <div class="rcard-preview">${(r.tips||r.reviews[0]?.text||r.description||'Click to view details').slice(0,75)}…</div>
       </div>
     </div>`;
   }).join('');
+
+  // Event delegation for card clicks
+  const cl = document.getElementById('cardList');
+  cl.onclick = function(e) {
+    const saveBtn = e.target.closest('[data-action="save"]');
+    if (saveBtn) {
+      const card = saveBtn.closest('[data-rid]');
+      if (card) toggleSave(card.dataset.rid);
+      return;
+    }
+    const card = e.target.closest('[data-rid]');
+    if (card) openDetail(card.dataset.rid);
+  };
 }
 
 // ═══════════════════════════════════════
@@ -1453,7 +1467,7 @@ function renderCards(){
 // ═══════════════════════════════════════
 function renderRanking(){
   document.getElementById('rankList').innerHTML=[...DB].sort((a,b)=>b.rating-a.rating).slice(0,5).map((r,i)=>`
-    <div class="rank-item" onclick="openDetail('${(r.id||'').trim()}')">
+    <div class="rank-item"${(r.id||'').trim()}')">
       <div class="rank-num ${['r1','r2','r3','rn','rn'][i]}">${i+1}</div>
       <div class="rank-emoji">${r.emoji}</div>
       <div class="rank-info"><div class="rank-name">${r.name}</div><div class="rank-city">${r.city.split(',')[0]}</div></div>
