@@ -9,11 +9,13 @@
 <meta name="apple-mobile-web-app-title" content="TABERU">
 <meta name="description" content="Real food reviews for Tokyo from real travelers. Find authentic restaurants with multilingual reviews.">
 <title>TABERU — Eat Tokyo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍜</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Sans+JP:wght@300;400;500&family=Noto+Sans+KR:wght@300;400&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Google Places API: replace YOUR_PLACES_KEY after getting key from console.cloud.google.com -->
-<script src="https://js.stripe.com/v3/"></script>
+<!-- Stripe SDK: uncomment after adding your STRIPE_KEY -->
+<!-- <script src="https://js.stripe.com/v3/"></script> -->
 <style>
 :root{
   --void:#0d0b08;--charcoal:#1c1812;--warm-dark:#2a2318;
@@ -827,14 +829,19 @@ try {
   // Proper chainable dummy so nothing crashes when SDK is slow/unavailable
   const _pr = (v={data:null,error:null}) => Promise.resolve(v);
   const _chain = () => {
+    const empty = {data:[],error:null};
+    const emptyFn = () => Promise.resolve(empty);
     const c = {
       select:()=>c, eq:()=>c, neq:()=>c, gte:()=>c, lte:()=>c, gt:()=>c, lt:()=>c,
-      order:()=>c, limit:()=>c, single:()=>_pr({data:null,error:'no_sdk'}),
+      order:()=>c, limit:emptyFn, single:()=>_pr({data:null,error:'no_sdk'}),
       ilike:()=>c, in:()=>c, contains:()=>c, is:()=>c, not:()=>c, filter:()=>c,
       insert:()=>c, update:()=>c, upsert:()=>c, delete:()=>c,
-      ascending:()=>_pr({data:[],error:null}),
-      then:(fn)=>_pr({data:[],error:null}).then(fn),
+      ascending:emptyFn,
+      then:(fn)=>_pr(empty).then(fn),
     };
+    // Make the chain itself awaitable
+    c[Symbol.iterator] = undefined;
+    Object.defineProperty(c,'then',{value:(fn)=>Promise.resolve(empty).then(fn)});
     return c;
   };
   sb = {
@@ -849,8 +856,7 @@ try {
     rpc: () => _pr({data:null,error:null})
   };
 }
-let stripe = null;
-try { stripe = Stripe(STRIPE_KEY); } catch(e) {}
+let stripe = null; // Stripe disabled until STRIPE_KEY is configured
 
 // ═══════════════════════════════════════
 // DATA — local seed (used when Supabase not connected)
@@ -1535,8 +1541,8 @@ function exportPlan(){
 async function openDetail(id){
   activeId=id;
   const r=DB.find(x=>x.id===id);if(!r)return;
-  // Load fresh reviews from Supabase if connected
-  await loadReviewsFromDB(id);
+  // Load fresh reviews from Supabase (non-blocking - modal opens regardless)
+  loadReviewsFromDB(id).catch(()=>{});
   document.getElementById('modalName').textContent=r.name;
   document.getElementById('modalMeta').textContent=`📍 ${r.address_ja||r.city} · ${LABEL_MAP[r.category]||r.category} · ${r.price} · ${starsHtml(r.rating)} ${r.rating}`;
   const ph=document.getElementById('modalPhoto'),em=document.getElementById('modalEmoji');
