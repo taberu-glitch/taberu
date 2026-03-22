@@ -821,7 +821,14 @@ const SUPABASE_URL  = 'https://wdhfxidkoytpoolriarm.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkaGZ4aWRrb3l0cG9vbHJpYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNDYxNzgsImV4cCI6MjA4OTcyMjE3OH0.lyNCxJ2a6mNznBq80wFGzxJZ8L5HjvTSgUecTvnbf5k';
 const STRIPE_KEY    = 'YOUR_STRIPE_PUBLISHABLE_KEY';
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let sb;
+try {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+} catch(e) {
+  console.warn('Supabase SDK not loaded:', e);
+  // Create a dummy sb object so the rest of JS doesn't crash
+  sb = { from: () => ({ select: () => ({ eq: () => ({ single: () => Promise.resolve({data:null,error:'SDK not loaded'}) }), limit: () => Promise.resolve({data:[],error:null}), order: () => ({ ascending: () => Promise.resolve({data:[],error:null}) }) }) }), auth: { getSession: () => Promise.resolve({data:{session:null}}), signInWithPassword: () => Promise.resolve({error:{message:'SDK not loaded'}}), signUp: () => Promise.resolve({error:{message:'SDK not loaded'}}), signOut: () => Promise.resolve({}), onAuthStateChange: () => ({}) } };
+}
 let stripe = null;
 try { stripe = Stripe(STRIPE_KEY); } catch(e) {}
 
