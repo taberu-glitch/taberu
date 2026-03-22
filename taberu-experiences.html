@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c1812">
+<title>TABERU Experiences — Tokyo Food Experiences</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Sans+JP:wght@300;400;500&family=Noto+Sans+KR:wght@300;400&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+:root{
+  --void:#0d0b08;--charcoal:#1c1812;--warm:#2a2318;
+  --paper:#f7f2e8;--cream:#ede6d4;--parchment:#e4dac5;
+  --red:#c0392b;--red-deep:#922b21;
+  --amber:#d4a843;--amber-pale:#f0d080;
+  --moss:#5a6b4e;--stone:#8a7d6a;--fog:#b8ad9e;--border:#d9cfbc;
+  --shadow:rgba(13,11,8,.13);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--paper);color:var(--void)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--stone);border-radius:99px}
+
+/* ── HEADER ── */
+header{background:var(--charcoal);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(255,255,255,.06)}
+.logo-wrap{display:flex;align-items:center;gap:14px;text-decoration:none}
+.logo-kanji{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--amber)}
+.logo-en{font-family:'Cormorant Garamond',serif;font-size:18px;color:#fff;letter-spacing:4px}
+.logo-sub{font-size:9px;color:var(--fog);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.header-nav{display:flex;align-items:center;gap:8px}
+.nav-link{color:rgba(255,255,255,.6);font-size:12px;text-decoration:none;padding:6px 12px;border-radius:4px;transition:all .2s}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,.08)}
+.nav-link.active{color:var(--amber)}
+.btn-primary{padding:8px 18px;background:var(--red);color:#fff;border:none;border-radius:5px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:background .2s}
+.btn-primary:hover{background:var(--red-deep)}
+
+/* ── HERO ── */
+.hero{background:var(--charcoal);padding:72px 28px;text-align:center;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;font-family:'Cormorant Garamond',serif;font-size:280px;color:rgba(255,255,255,.025);display:flex;align-items:center;justify-content:center;pointer-events:none}
+.hero-eyebrow{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--amber);margin-bottom:14px}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,6vw,66px);color:#fff;line-height:1.1;margin-bottom:14px}
+.hero h1 em{color:var(--amber);font-style:italic}
+.hero-sub{color:rgba(255,255,255,.5);font-size:14px;max-width:520px;margin:0 auto 36px;line-height:1.8}
+
+/* ── CATEGORY FILTER ── */
+.category-strip{background:var(--cream);padding:14px 28px;display:flex;gap:8px;overflow-x:auto;border-bottom:1px solid var(--border);-ms-overflow-style:none;scrollbar-width:none}
+.cat-chip{flex-shrink:0;padding:7px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.cat-chip:hover{border-color:var(--red)}
+.cat-chip.active{background:var(--void);border-color:var(--void);color:#fff}
+
+/* ── EXPERIENCE GRID ── */
+.container{max-width:1140px;margin:0 auto;padding:40px 24px}
+.grid-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.grid-title{font-family:'Cormorant Garamond',serif;font-size:24px}
+.grid-count{font-size:13px;color:var(--stone)}
+.exp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+
+/* ── EXPERIENCE CARD ── */
+.exp-card{background:#fff;border-radius:12px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:all .25s;animation:fadeIn .4s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.exp-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px var(--shadow)}
+.exp-img{height:200px;position:relative;overflow:hidden;background:var(--cream)}
+.exp-img-photo{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.exp-img-placeholder{display:flex;align-items:center;justify-content:center;font-size:64px;height:100%}
+.exp-category-badge{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;padding:4px 10px;border-radius:99px}
+.exp-price-badge{position:absolute;bottom:12px;right:12px;background:var(--charcoal);color:var(--amber);font-size:14px;font-weight:600;padding:5px 12px;border-radius:8px;font-family:'Cormorant Garamond',serif}
+.exp-body{padding:16px 18px}
+.exp-title{font-family:'Cormorant Garamond',serif;font-size:20px;margin-bottom:6px;line-height:1.2}
+.exp-meta{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--stone);margin-bottom:10px}
+.exp-meta span{display:flex;align-items:center;gap:4px}
+.exp-desc{font-size:13px;color:var(--stone);line-height:1.6;margin-bottom:14px}
+.exp-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.exp-tag{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--cream);color:var(--stone);border:1px solid var(--border)}
+.exp-footer{display:flex;align-items:center;justify-content:space-between}
+.exp-host{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--stone)}
+.exp-host-avatar{width:28px;height:28px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--void)}
+.exp-cta{padding:8px 18px;background:var(--red);color:#fff;border:none;border-radius:5px;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:background .2s}
+.exp-cta:hover{background:var(--red-deep)}
+
+/* ── BOOKING MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(13,11,8,.82);z-index:500;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;backdrop-filter:blur(5px)}
+.overlay.open{display:flex}
+.modal{background:var(--paper);border-radius:14px;width:100%;max-width:640px;overflow:hidden;margin:auto;animation:modalIn .3s cubic-bezier(.22,1,.36,1)}
+@keyframes modalIn{from{transform:translateY(32px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.modal-img{height:220px;position:relative;overflow:hidden;background:var(--charcoal);display:flex;align-items:center;justify-content:center;font-size:72px}
+.modal-img-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.modal-img-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(13,11,8,.8) 0%,transparent 55%)}
+.modal-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:17px;cursor:pointer;z-index:2}
+.modal-info{position:absolute;bottom:18px;left:22px;right:22px}
+.modal-info h2{font-family:'Cormorant Garamond',serif;font-size:26px;color:#fff}
+.modal-info p{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px}
+.modal-body{padding:24px}
+.modal-section{margin-bottom:22px}
+.modal-section-title{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--stone);font-weight:500;margin-bottom:10px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.detail-item{background:var(--cream);border-radius:8px;padding:12px 14px}
+.detail-label{font-size:11px;color:var(--stone);margin-bottom:3px}
+.detail-value{font-size:14px;font-weight:500}
+/* Booking form */
+.booking-form{background:var(--cream);border-radius:10px;padding:20px}
+.form-row{margin-bottom:14px}
+.form-label{display:block;font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.form-input,.form-select{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;background:#fff;outline:none;color:var(--void);transition:border-color .2s}
+.form-input:focus,.form-select:focus{border-color:var(--red)}
+.price-summary{background:#fff;border-radius:8px;padding:14px;border:1px solid var(--border);margin-bottom:16px}
+.price-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+.price-row.total{font-weight:600;font-size:15px;border-top:1px solid var(--border);padding-top:10px;margin-top:6px}
+.book-btn{width:100%;padding:13px;border-radius:8px;border:none;background:var(--red);color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s}
+.book-btn:hover{background:var(--red-deep)}
+.book-btn:disabled{opacity:.5;cursor:default}
+
+/* ── HOST CTA ── */
+.host-cta-section{background:var(--charcoal);padding:64px 28px;text-align:center;margin-top:40px}
+.host-cta-section h2{font-family:'Cormorant Garamond',serif;font-size:40px;color:#fff;margin-bottom:12px}
+.host-cta-section h2 em{color:var(--amber);font-style:italic}
+.host-cta-section p{color:rgba(255,255,255,.5);font-size:14px;max-width:480px;margin:0 auto 28px;line-height:1.7}
+.host-cta-btn{padding:13px 32px;background:var(--amber);color:var(--void);border:none;border-radius:6px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.host-cta-btn:hover{background:var(--amber-pale)}
+.host-stats{display:flex;justify-content:center;gap:40px;margin-top:36px}
+.host-stat-val{font-family:'Cormorant Garamond',serif;font-size:38px;color:var(--amber)}
+.host-stat-label{font-size:12px;color:rgba(255,255,255,.4);margin-top:4px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--void);color:#fff;padding:11px 22px;border-radius:8px;font-size:13px;z-index:9999;transition:transform .3s;border-left:4px solid var(--amber);white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:860px){.exp-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.exp-grid{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}.host-stats{gap:20px}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a class="logo-wrap" href="index.html">
+    <div class="logo-kanji">食</div>
+    <div>
+      <div class="logo-en">TABERU</div>
+      <div class="logo-sub">Eat Tokyo · Share the Story</div>
+    </div>
+  </a>
+  <div class="header-nav">
+    <a class="nav-link" href="index.html">Restaurants</a>
+    <a class="nav-link active">Experiences</a>
+    <button class="btn-primary" onclick="openHostModal()">🍳 Host an Experience</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">食</div>
+  <div class="hero-eyebrow">TOKYO FOOD EXPERIENCES</div>
+  <h1>Eat like a <em>local</em>.<br>Learn from the masters.</h1>
+  <p class="hero-sub">Exclusive culinary experiences with Tokyo's top chefs, market guides, and food artisans. Curated for inbound travelers.</p>
+</section>
+
+<!-- CATEGORY FILTER -->
+<div class="category-strip">
+  <div class="cat-chip active" onclick="filterCat('all',this)">🍱 All</div>
+  <div class="cat-chip" onclick="filterCat('chef_table',this)">👨‍🍳 Chef's Table</div>
+  <div class="cat-chip" onclick="filterCat('cooking_class',this)">🍳 Cooking Class</div>
+  <div class="cat-chip" onclick="filterCat('market_tour',this)">🏮 Market Tour</div>
+  <div class="cat-chip" onclick="filterCat('sake_tasting',this)">🍶 Sake Tasting</div>
+  <div class="cat-chip" onclick="filterCat('sushi_making',this)">🍣 Sushi Making</div>
+  <div class="cat-chip" onclick="filterCat('ramen_class',this)">🍜 Ramen Class</div>
+  <div class="cat-chip" onclick="filterCat('tea_ceremony',this)">🍵 Tea Ceremony</div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+  <div class="grid-header">
+    <div class="grid-title">✨ Featured Experiences</div>
+    <div class="grid-count" id="expCount">Loading…</div>
+  </div>
+  <div class="exp-grid" id="expGrid">
+    <!-- Loaded by JS -->
+  </div>
+</div>
+
+<!-- HOST DASHBOARD (shown when logged in as host) -->
+<div id="hostDashboard" style="display:none">
+  <div class="container" style="padding-top:20px;padding-bottom:0">
+    <div style="background:var(--charcoal);border-radius:12px;padding:24px 28px;margin-bottom:32px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#fff">🍳 Host Dashboard</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:3px">Your experience earnings & bookings</div>
+        </div>
+        <button onclick="openHostModal()" style="padding:9px 20px;background:var(--amber);color:var(--void);border:none;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">＋ Add Experience</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px">
+        <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:16px">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px">Total Earnings</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--amber);margin-top:4px" id="hostEarnings">¥0</div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:16px">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px">Bookings</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#fff;margin-top:4px" id="hostBookings">0</div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:16px">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px">Active Experiences</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#fff;margin-top:4px" id="hostExpCount">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOST CTA SECTION -->
+<section class="host-cta-section">
+  <h2>Share your <em>craft</em>.</h2>
+  <p>Are you a chef, sake sommelier, market guide, or culinary artisan? Host an experience on TABERU and earn ¥40,000〜¥80,000 per session.</p>
+  <button class="host-cta-btn" onclick="openHostModal()">Apply to Host →</button>
+  <div class="host-stats">
+    <div><div class="host-stat-val">80%</div><div class="host-stat-label">Host payout</div></div>
+    <div><div class="host-stat-val">¥50,000</div><div class="host-stat-label">Avg. experience price</div></div>
+    <div><div class="host-stat-val">3,690万</div><div class="host-stat-label">Inbound travelers/year</div></div>
+  </div>
+</section>
+
+<!-- BOOKING MODAL -->
+<div class="overlay" id="bookingOverlay" onclick="if(event.target===this)closeBooking()">
+  <div class="modal">
+    <div class="modal-img" id="modalImg">
+      <span id="modalEmoji" style="position:relative;z-index:1"></span>
+      <img id="modalImgPhoto" class="modal-img-photo" style="display:none" src="" alt="">
+      <div class="modal-img-overlay"></div>
+      <button class="modal-close" onclick="closeBooking()">✕</button>
+      <div class="modal-info">
+        <h2 id="modalTitle"></h2>
+        <p id="modalSubtitle"></p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <!-- Details -->
+      <div class="modal-section">
+        <div class="modal-section-title">Experience Details</div>
+        <div class="detail-grid">
+          <div class="detail-item"><div class="detail-label">Duration</div><div class="detail-value" id="modalDuration"></div></div>
+          <div class="detail-item"><div class="detail-label">Location</div><div class="detail-value" id="modalLocation"></div></div>
+          <div class="detail-item"><div class="detail-label">Group size</div><div class="detail-value" id="modalCapacity"></div></div>
+          <div class="detail-item"><div class="detail-label">Language</div><div class="detail-value">English, Japanese</div></div>
+        </div>
+      </div>
+      <!-- Description -->
+      <div class="modal-section">
+        <div class="modal-section-title">About this experience</div>
+        <p id="modalDesc" style="font-size:14px;color:var(--stone);line-height:1.7"></p>
+      </div>
+      <!-- Booking form -->
+      <div class="modal-section">
+        <div class="modal-section-title">Book this experience</div>
+        <div class="booking-form">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="form-row"><label class="form-label">Your Name</label><input class="form-input" id="bookName" placeholder="e.g. Sarah"></div>
+            <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="bookEmail" type="email" placeholder="you@example.com"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+            <div class="form-row"><label class="form-label">Date</label><input class="form-input" id="bookDate" type="date"></div>
+            <div class="form-row"><label class="form-label">Guests</label>
+              <select class="form-select" id="bookGuests" onchange="updatePriceSummary()">
+                <option value="1">1 guest</option><option value="2">2 guests</option>
+                <option value="3">3 guests</option><option value="4">4 guests</option>
+              </select>
+            </div>
+          </div>
+          <div class="price-summary" id="priceSummary"></div>
+          <button class="book-btn" id="bookBtn" onclick="handleBooking()">Reserve & Pay →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOST MODAL (simplified for now) -->
+<div class="overlay" id="hostOverlay" onclick="if(event.target===this)closeHostModal()">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-img" style="height:100px;font-size:36px;background:var(--void)">
+      <div class="modal-img-overlay"></div>
+      <button class="modal-close" onclick="closeHostModal()">✕</button>
+      <div class="modal-info" style="bottom:14px">
+        <h2 style="font-size:20px">Apply to Host</h2>
+        <p>Share your culinary expertise with the world</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">Your Name / Restaurant</label><input class="form-input" id="hostName" placeholder="Chef Tanaka / Sushi Tanaka"></div>
+      <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="hostEmail" type="email" placeholder="chef@example.com"></div>
+      <div class="form-row"><label class="form-label">Experience Type</label>
+        <select class="form-select" id="hostType">
+          <option value="chef_table">Chef's Table</option>
+          <option value="cooking_class">Cooking Class</option>
+          <option value="market_tour">Market Tour</option>
+          <option value="sake_tasting">Sake Tasting</option>
+          <option value="sushi_making">Sushi Making</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Description (what will guests experience?)</label>
+        <textarea class="form-input" id="hostDesc" rows="4" placeholder="Describe your experience…" style="resize:vertical"></textarea>
+      </div>
+      <div class="form-row"><label class="form-label">Proposed Price per Person (¥)</label>
+        <input class="form-input" id="hostPrice" type="number" placeholder="e.g. 15000">
+      </div>
+      <div style="background:var(--cream);border-radius:8px;padding:14px;font-size:12px;color:var(--stone);margin-bottom:16px">
+        💰 You keep <strong>80%</strong> of every booking. TABERU takes a 20% platform fee for marketing, payment processing, and customer support.
+      </div>
+      <button class="book-btn" onclick="submitHostApplication()">Submit Application →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// SUPABASE CONFIG (same as dashboard)
+// ═══════════════════════════════════════
+const SUPABASE_URL  = 'https://wdhfxidkoytpoolriarm.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkaGZ4aWRrb3l0cG9vbHJpYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNDYxNzgsImV4cCI6MjA4OTcyMjE3OH0.lyNCxJ2a6mNznBq80wFGzxJZ8L5HjvTSgUecTvnbf5k';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── SEED DATA (shown while Supabase is empty) ──────────
+const SEED_EXPERIENCES = [
+  { id:'1', title:"Jiro-Style Omakase Experience", category:"chef_table",
+    description:"Sit at the counter of a master sushi chef and receive a 12-course omakase experience, Jiro-style. Each piece is crafted before your eyes. Maximum 6 guests per session — book months ahead for the full experience.",
+    price_yen:45000, capacity:6, duration_min:90, location:"Ginza, Tokyo",
+    tags:["Omakase","Michelin","Counter Seating","Premium"],
+    emoji:"🍣", rating:4.9, booking_count:142,
+    host_name:"Chef Kenji Matsumoto", host_initial:"K" },
+  { id:'2', title:"Tsukiji Dawn Market Tour & Breakfast", category:"market_tour",
+    description:"Join our expert guide at 5am for the best of Tsukiji Outer Market. Taste fresh tamagoyaki, sea urchin, and seasonal fish directly from vendors. Ends with a full Japanese breakfast.",
+    price_yen:8500, capacity:8, duration_min:180, location:"Tsukiji, Tokyo",
+    tags:["Early Morning","Street Food","Fresh Fish","Breakfast Included"],
+    emoji:"🏮", rating:4.8, booking_count:389,
+    host_name:"Yuki Yamamoto", host_initial:"Y" },
+  { id:'3', title:"Sake & Japanese Whisky Pairing", category:"sake_tasting",
+    description:"A curated tasting of 8 premium nihonshu (sake) and 3 Japanese whiskies, paired with small bites from our kitchen. Led by a certified sake sommelier.",
+    price_yen:15000, capacity:12, duration_min:120, location:"Shinjuku, Tokyo",
+    tags:["Sake","Whisky","Food Pairing","Premium"],
+    emoji:"🍶", rating:4.7, booking_count:218,
+    host_name:"Sake Master Ryo", host_initial:"R" },
+  { id:'4', title:"Ramen from Scratch — Full Day Class", category:"ramen_class",
+    description:"Learn to make tonkotsu broth from scratch, hand-cut noodles, and perfect chashu pork in this 4-hour intensive class. Take home your own recipe card.",
+    price_yen:12000, capacity:8, duration_min:240, location:"Ikebukuro, Tokyo",
+    tags:["Hands-on","Ramen","Recipe Card","Beginner Friendly"],
+    emoji:"🍜", rating:4.9, booking_count:531,
+    host_name:"Ramen Master Nagi", host_initial:"N" },
+  { id:'5', title:"Traditional Sushi Making Class", category:"sushi_making",
+    description:"An intimate 2-hour class where you'll learn nigiri, maki, and temaki from a sushi chef with 20 years of experience. Includes all ingredients and a sake pairing.",
+    price_yen:18000, capacity:6, duration_min:120, location:"Ginza, Tokyo",
+    tags:["Sushi","Hands-on","Sake Included","Premium"],
+    emoji:"🍱", rating:4.8, booking_count:276,
+    host_name:"Chef Hiroshi", host_initial:"H" },
+  { id:'6', title:"Wagyu Yakiniku Master Class", category:"cooking_class",
+    description:"Learn the art of yakiniku — how to select, cut, and grill premium wagyu beef to perfection. Includes A5 wagyu tasting and a take-home guide.",
+    price_yen:22000, capacity:8, duration_min:150, location:"Shibuya, Tokyo",
+    tags:["Wagyu","A5","Grilling","Premium"],
+    emoji:"🥩", rating:4.7, booking_count:193,
+    host_name:"BBQ Master Sota", host_initial:"S" },
+];
+
+let allExperiences = [...SEED_EXPERIENCES];
+let currentCat = 'all';
+let activeExp  = null;
+
+// ── LOAD EXPERIENCES ──────────────────
+async function loadExperiences() {
+  try {
+    const { data } = await sb.from('experiences').select('*').eq('status','active').order('booking_count',{ascending:false});
+    if (data && data.length > 0) allExperiences = data;
+  } catch(e) {
+    // Use seed data if Supabase not configured
+  }
+  renderExperiences();
+}
+
+function filterCat(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderExperiences();
+}
+
+function renderExperiences() {
+  const filtered = currentCat === 'all' ? allExperiences : allExperiences.filter(e => e.category === currentCat);
+  document.getElementById('expCount').textContent = `${filtered.length} experiences`;
+  const stars = n => '★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n));
+  const durLabel = m => m >= 60 ? `${m/60}h` : `${m}min`;
+  const catLabel = {chef_table:'Chef\'s Table',cooking_class:'Cooking Class',market_tour:'Market Tour',sake_tasting:'Sake Tasting',sushi_making:'Sushi Making',ramen_class:'Ramen Class',tea_ceremony:'Tea Ceremony'};
+
+  document.getElementById('expGrid').innerHTML = filtered.map((e,i) => `
+    <div class="exp-card" style="animation-delay:${i*0.06}s" onclick="openBooking('${e.id}')">
+      <div class="exp-img">
+        ${e.photos?.[0] ? `<img class="exp-img-photo" src="${e.photos[0]}" alt="" onerror="this.style.display='none'">` : ''}
+        <div class="exp-img-placeholder">${e.emoji||'🍱'}</div>
+        <div class="exp-category-badge">${catLabel[e.category]||e.category}</div>
+        <div class="exp-price-badge">¥${(e.price_yen||0).toLocaleString()}<span style="font-size:11px;color:rgba(212,168,67,.7)">/person</span></div>
+      </div>
+      <div class="exp-body">
+        <div class="exp-title">${e.title}</div>
+        <div class="exp-meta">
+          <span>⏱ ${durLabel(e.duration_min||120)}</span>
+          <span>👥 Max ${e.capacity||8}</span>
+          <span style="color:var(--amber)">${stars(e.rating||4.8)} ${e.rating||4.8}</span>
+        </div>
+        <div class="exp-desc">${(e.description||'').slice(0,100)}…</div>
+        <div class="exp-tags">${(e.tags||[]).slice(0,3).map(t=>`<span class="exp-tag">${t}</span>`).join('')}</div>
+        <div class="exp-footer">
+          <div class="exp-host">
+            <div class="exp-host-avatar">${e.host_initial||e.host_name?.[0]||'H'}</div>
+            <span>${e.host_name||'TABERU Host'}</span>
+          </div>
+          <button class="exp-cta" onclick="event.stopPropagation();openBooking('${e.id}')">Book →</button>
+        </div>
+      </div>
+    </div>`).join('') || '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--stone)">No experiences in this category yet.</div>';
+}
+
+// ── BOOKING MODAL ─────────────────────
+function openBooking(id) {
+  activeExp = allExperiences.find(e => e.id === id || e.id === String(id));
+  if (!activeExp) return;
+  document.getElementById('modalTitle').textContent   = activeExp.title;
+  document.getElementById('modalSubtitle').textContent = `📍 ${activeExp.location} · ${activeExp.emoji}`;
+  document.getElementById('modalEmoji').textContent   = activeExp.emoji || '🍱';
+  const ph = document.getElementById('modalImgPhoto');
+  if (activeExp.photos?.[0]) { ph.src = activeExp.photos[0]; ph.style.display='block'; document.getElementById('modalEmoji').style.display='none'; }
+  else { ph.style.display='none'; document.getElementById('modalEmoji').style.display='block'; }
+  const d = m => m >= 60 ? `${m/60} hours` : `${m} min`;
+  document.getElementById('modalDuration').textContent = d(activeExp.duration_min||120);
+  document.getElementById('modalLocation').textContent = activeExp.location || 'Tokyo';
+  document.getElementById('modalCapacity').textContent = `Up to ${activeExp.capacity||8}`;
+  document.getElementById('modalDesc').textContent     = activeExp.description || '';
+  // Set min date to tomorrow
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  document.getElementById('bookDate').min = tomorrow.toISOString().split('T')[0];
+  document.getElementById('bookDate').value = '';
+  document.getElementById('bookName').value = '';
+  document.getElementById('bookEmail').value = '';
+  document.getElementById('bookGuests').value = '1';
+  updatePriceSummary();
+  document.getElementById('bookingOverlay').classList.add('open');
+}
+
+function closeBooking() { document.getElementById('bookingOverlay').classList.remove('open'); activeExp = null; }
+
+function updatePriceSummary() {
+  if (!activeExp) return;
+  const guests = parseInt(document.getElementById('bookGuests').value) || 1;
+  const price   = activeExp.price_yen || 0;
+  const subtotal = price * guests;
+  const fee     = Math.round(subtotal * 0.20); // TABERU 20%
+  const total   = subtotal;
+  document.getElementById('priceSummary').innerHTML = `
+    <div class="price-row"><span>¥${price.toLocaleString()} × ${guests} guest${guests>1?'s':''}</span><span>¥${subtotal.toLocaleString()}</span></div>
+    <div class="price-row"><span style="color:var(--stone)">Platform fee (included)</span><span style="color:var(--stone)">¥${fee.toLocaleString()}</span></div>
+    <div class="price-row total"><span>Total</span><span style="color:var(--red)">¥${total.toLocaleString()}</span></div>`;
+}
+
+async function handleBooking() {
+  const name  = document.getElementById('bookName').value.trim();
+  const email = document.getElementById('bookEmail').value.trim();
+  const date  = document.getElementById('bookDate').value;
+  const guests = parseInt(document.getElementById('bookGuests').value);
+  if (!name || !email || !date) return showToast('Please fill in all fields.');
+  const btn = document.getElementById('bookBtn');
+  btn.disabled = true; btn.textContent = 'Processing…';
+
+  const total  = (activeExp.price_yen || 0) * guests;
+  const fee    = Math.round(total * 0.20);
+
+  // Save booking to Supabase
+  const booking = {
+    experience_id: activeExp.id,
+    guest_name: name, guest_email: email,
+    booked_for: new Date(date).toISOString(),
+    guests, total_yen: total,
+    platform_fee_yen: fee,
+    host_payout_yen: total - fee,
+    status: 'pending'
+  };
+  try {
+    const { error } = await sb.from('experience_bookings').insert(booking);
+    if (error) throw error;
+  } catch(e) { /* Supabase not configured yet, continue */ }
+
+  // In production: initiate Stripe Payment Intent here
+  // const stripe = Stripe('YOUR_PUBLISHABLE_KEY');
+  // Then redirect to payment or show payment element
+
+  showToast('Booking confirmed! Check your email for details. 🎉');
+  setTimeout(() => { closeBooking(); btn.disabled = false; btn.textContent = 'Reserve & Pay →'; }, 1200);
+}
+
+// ── HOST APPLICATION ──────────────────
+function openHostModal()  { document.getElementById('hostOverlay').classList.add('open'); }
+function closeHostModal() { document.getElementById('hostOverlay').classList.remove('open'); }
+
+async function submitHostApplication() {
+  const name  = document.getElementById('hostName').value.trim();
+  const email = document.getElementById('hostEmail').value.trim();
+  const type  = document.getElementById('hostType').value;
+  const desc  = document.getElementById('hostDesc').value.trim();
+  const price = document.getElementById('hostPrice').value;
+  if (!name || !email || !desc) return showToast('Please fill in all fields.');
+
+  // Save application to Supabase experiences table as draft
+  try {
+    await sb.from('experiences').insert({
+      title: `[APPLICATION] ${name}`, category: type,
+      description: desc, price_yen: parseInt(price)||0,
+      status: 'archived' // pending review
+    });
+  } catch(e) { /* Supabase not configured yet */ }
+
+  closeHostModal();
+  showToast('Application received! We\'ll be in touch within 48h. 🙌');
+}
+
+// ── TOAST ─────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ── HOST SESSION ──────────────────────
+async function checkHostSession() {
+  const { data: { session } } = await sb.auth.getSession().catch(() => ({data:{session:null}}));
+  if (!session) return;
+  const user = session.user;
+  // Load host earnings
+  try {
+    const { data: bookings } = await sb
+      .from('experience_bookings')
+      .select('host_payout_yen, total_yen, status')
+      .eq('status', 'confirmed');
+    if (bookings?.length) {
+      const totalEarnings = bookings.reduce((s, b) => s + (b.host_payout_yen || 0), 0);
+      document.getElementById('hostEarnings').textContent = '¥' + totalEarnings.toLocaleString();
+      document.getElementById('hostBookings').textContent = bookings.length;
+    }
+    const { data: exps } = await sb
+      .from('experiences')
+      .select('id')
+      .eq('host_id', user.id)
+      .eq('status', 'active');
+    document.getElementById('hostExpCount').textContent = exps?.length || 0;
+    document.getElementById('hostDashboard').style.display = 'block';
+  } catch(e) {}
+}
+
+// ── INIT ──────────────────────────────
+loadExperiences();
+checkHostSession();
+</script>
+</body>
+</html>

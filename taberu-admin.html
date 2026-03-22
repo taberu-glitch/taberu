@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1c1812">
+<title>TABERU — Admin · Revenue Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --void:#0d0b08;--charcoal:#1c1812;--paper:#f7f2e8;--cream:#ede6d4;
+  --red:#c0392b;--amber:#d4a843;--green:#27ae60;--blue:#2471a3;
+  --stone:#8a7d6a;--border:#d9cfbc;--shadow:rgba(13,11,8,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--cream);color:var(--void);min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--charcoal);padding:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh}
+.sidebar-logo{padding:22px 20px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sidebar-kanji{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--amber)}
+.sidebar-sub{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover,.nav-item.active{color:var(--amber);border-left-color:var(--amber);background:rgba(212,168,67,.07)}
+.main{margin-left:220px;padding:28px;flex:1}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:26px;margin-bottom:3px}
+.page-sub{font-size:12px;color:var(--stone);margin-bottom:24px}
+
+/* Cards */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi-card{background:#fff;border-radius:10px;padding:18px;border:1px solid var(--border)}
+.kpi-label{font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--void);line-height:1}
+.kpi-delta{font-size:11px;margin-top:5px}
+.up{color:var(--green)}.down{color:var(--red)}.flat{color:var(--stone)}
+.kpi-icon{float:right;font-size:24px;margin-top:-2px}
+
+.card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:22px;margin-bottom:18px}
+.card-title{font-size:14px;font-weight:500;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.card-title select{padding:5px 10px;border:1px solid var(--border);border-radius:5px;font-family:inherit;font-size:12px;background:#fff;outline:none;color:var(--stone)}
+
+/* Layer pills */
+.layer-pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:500}
+.l1{background:rgba(26,188,156,.12);color:#0e7862}
+.l2{background:rgba(212,168,67,.12);color:#7a5a0a}
+.l3{background:rgba(192,57,43,.1);color:var(--red)}
+
+/* Table */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:9px 12px;text-align:left;font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--border)}
+.data-table td{padding:10px 12px;font-size:12px;border-bottom:1px solid var(--border)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--cream)}
+
+/* Auth */
+.auth-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--charcoal)}
+.auth-box{background:var(--paper);border-radius:12px;padding:36px;max-width:360px;width:100%}
+.auth-logo{text-align:center;margin-bottom:24px}
+.auth-logo-k{font-family:'Cormorant Garamond',serif;font-size:42px;color:var(--amber)}
+.auth-logo-t{font-size:14px;color:var(--stone);margin-top:4px}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:11px;color:var(--stone);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.auth-field input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;outline:none}
+.auth-field input:focus{border-color:var(--red)}
+.auth-btn{width:100%;padding:11px;background:var(--red);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.auth-err{font-size:12px;color:var(--red);margin-bottom:12px;display:none}
+.auth-err.show{display:block}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--void);color:#fff;padding:10px 20px;border-radius:7px;font-size:12px;z-index:9999;transition:transform .3s;border-left:3px solid var(--amber)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authWrap" class="auth-wrap">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-k">食</div>
+      <div class="auth-logo-t">TABERU Admin · Revenue Report</div>
+    </div>
+    <div class="auth-err" id="authErr"></div>
+    <div class="auth-field"><label>Email</label><input type="email" id="adminEmail" placeholder="admin@taberu.app"></div>
+    <div class="auth-field"><label>Password</label><input type="password" id="adminPw" placeholder="Password" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+    <button class="auth-btn" onclick="adminLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="appWrap" class="layout" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-kanji">食 TABERU</div>
+      <div class="sidebar-sub">Admin · CFO View</div>
+    </div>
+    <nav style="margin-top:8px">
+      <div class="nav-item active" onclick="showPage('overview')">📊 Overview</div>
+      <div class="nav-item" onclick="showPage('layer1')">🏪 Layer 1 — Subscriptions</div>
+      <div class="nav-item" onclick="showPage('layer2')">📅 Layer 2 — Reservations</div>
+      <div class="nav-item" onclick="showPage('layer3')">✨ Layer 3 — Experiences</div>
+      <div class="nav-item" onclick="showPage('users')">👥 Users</div>
+      <div class="nav-item" onclick="showPage('restaurants')">🏪 Restaurants</div>
+    </nav>
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,.07);margin-top:auto">
+      <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:8px" id="adminLabel">—</div>
+      <button onclick="adminLogout()" style="width:100%;padding:7px;background:transparent;color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.15);border-radius:5px;font-family:inherit;font-size:11px;cursor:pointer">Log Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- OVERVIEW -->
+    <div id="page-overview">
+      <div class="page-title">Revenue Overview</div>
+      <div class="page-sub" id="overviewSub">Loading…</div>
+      <div class="kpi-row">
+        <div class="kpi-card"><span class="kpi-icon">💴</span><div class="kpi-label">MRR (Monthly Recurring)</div><div class="kpi-value" id="kpiMRR">¥—</div><div class="kpi-delta flat" id="kpiMRRDelta">Layer 1 subscriptions</div></div>
+        <div class="kpi-card"><span class="kpi-icon">📅</span><div class="kpi-label">Reservation Revenue MTD</div><div class="kpi-value" id="kpiRes">¥—</div><div class="kpi-delta flat">Layer 2 platform fees</div></div>
+        <div class="kpi-card"><span class="kpi-icon">✨</span><div class="kpi-label">Experience Revenue MTD</div><div class="kpi-value" id="kpiExp">¥—</div><div class="kpi-delta flat">Layer 3 commissions (20%)</div></div>
+        <div class="kpi-card"><span class="kpi-icon">🔥</span><div class="kpi-label">Total Revenue MTD</div><div class="kpi-value" id="kpiTotal">¥—</div><div class="kpi-delta up" id="kpiTotalDelta">All layers combined</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px">
+        <div class="card">
+          <div class="card-title">
+            Monthly Revenue Trend
+            <select id="trendRange" onchange="loadTrendChart()">
+              <option value="6">Last 6 months</option>
+              <option value="12">Last 12 months</option>
+            </select>
+          </div>
+          <canvas id="trendChart" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Revenue by Layer</div>
+          <canvas id="layerChart" height="200"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Key Metrics</div>
+        <table class="data-table">
+          <thead><tr><th>Metric</th><th>Current Month</th><th>Last Month</th><th>MoM Change</th><th>Target</th></tr></thead>
+          <tbody id="metricsTable"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--stone)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LAYER 1 -->
+    <div id="page-layer1" style="display:none">
+      <div class="page-title">Layer 1 — Subscriptions</div>
+      <div class="page-sub">Monthly recurring revenue from restaurant plans</div>
+      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card"><div class="kpi-label">Active Subscribers</div><div class="kpi-value" id="l1Active">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">MRR</div><div class="kpi-value" id="l1MRR">¥—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Avg Plan Value</div><div class="kpi-value" id="l1ARPU">¥—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Active Subscriptions</div>
+        <table class="data-table">
+          <thead><tr><th>Restaurant</th><th>Plan</th><th>Monthly Fee</th><th>Status</th><th>Next Billing</th></tr></thead>
+          <tbody id="subsTable"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--stone)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LAYER 2 -->
+    <div id="page-layer2" style="display:none">
+      <div class="page-title">Layer 2 — Reservations</div>
+      <div class="page-sub">Platform fee revenue from inbound traveler bookings</div>
+      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card"><div class="kpi-label">Reservations MTD</div><div class="kpi-value" id="l2Count">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Revenue MTD</div><div class="kpi-value" id="l2Rev">¥—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Avg Party Size</div><div class="kpi-value" id="l2Party">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Reservations</div>
+        <table class="data-table">
+          <thead><tr><th>Guest</th><th>Restaurant</th><th>Date</th><th>Party</th><th>Fee</th><th>Status</th></tr></thead>
+          <tbody id="resTable"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--stone)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LAYER 3 -->
+    <div id="page-layer3" style="display:none">
+      <div class="page-title">Layer 3 — Experiences</div>
+      <div class="page-sub">Commission revenue (20%) from food experience marketplace</div>
+      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card"><div class="kpi-label">Bookings MTD</div><div class="kpi-value" id="l3Count">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Commission Revenue</div><div class="kpi-value" id="l3Rev">¥—</div></div>
+        <div class="kpi-card"><div class="kpi-label">GMV (Gross)</div><div class="kpi-value" id="l3GMV">¥—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Experience Performance</div>
+        <table class="data-table">
+          <thead><tr><th>Experience</th><th>Host</th><th>Price</th><th>Bookings</th><th>Commission</th><th>Rating</th></tr></thead>
+          <tbody id="expTable"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--stone)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="page-users" style="display:none">
+      <div class="page-title">Users</div>
+      <div class="page-sub">Registered travelers, restaurant owners, and experience hosts</div>
+      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card"><div class="kpi-label">Total Users</div><div class="kpi-value" id="uTotal">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">Restaurant Owners</div><div class="kpi-value" id="uOwners">—</div></div>
+        <div class="kpi-card"><div class="kpi-label">New This Month</div><div class="kpi-value" id="uNew">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Sign-ups</div>
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Role</th><th>Country</th><th>Joined</th></tr></thead>
+          <tbody id="usersTable"><tr><td colspan="4" style="text-align:center;padding:20px;color:var(--stone)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RESTAURANTS -->
+    <div id="page-restaurants" style="display:none">
+      <div class="page-title">Restaurants</div>
+      <div class="page-sub">All listed restaurants and their subscription status</div>
+      <div class="card">
+        <div class="card-title">
+          All Restaurants
+          <button onclick="exportRestaurants()" style="padding:6px 14px;background:var(--charcoal);color:#fff;border:none;border-radius:5px;font-family:inherit;font-size:11px;cursor:pointer">⬇ Export CSV</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Restaurant</th><th>Area</th><th>Category</th><th>Rating</th><th>Reviews</th><th>Plan</th></tr></thead>
+          <tbody id="restaurantsTable"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--stone)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ─────────────────────────
+const SUPABASE_URL  = 'https://wdhfxidkoytpoolriarm.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkaGZ4aWRrb3l0cG9vbHJpYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNDYxNzgsImV4cCI6MjA4OTcyMjE3OH0.lyNCxJ2a6mNznBq80wFGzxJZ8L5HjvTSgUecTvnbf5k';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── AUTH ───────────────────────────
+async function adminLogin() {
+  const email = document.getElementById('adminEmail').value.trim();
+  const pw    = document.getElementById('adminPw').value;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (error) {
+    const el = document.getElementById('authErr');
+    el.textContent = error.message; el.classList.add('show');
+    return;
+  }
+  // Check admin role
+  const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
+  if (profile?.role !== 'admin') {
+    await sb.auth.signOut();
+    document.getElementById('authErr').textContent = 'Access denied — admin only';
+    document.getElementById('authErr').classList.add('show');
+    return;
+  }
+  showApp(data.user);
+}
+async function adminLogout() {
+  await sb.auth.signOut();
+  document.getElementById('appWrap').style.display = 'none';
+  document.getElementById('authWrap').style.display = 'flex';
+}
+function showApp(user) {
+  document.getElementById('authWrap').style.display = 'none';
+  document.getElementById('appWrap').style.display = 'flex';
+  document.getElementById('adminLabel').textContent = user.email;
+  document.getElementById('overviewSub').textContent = `Last updated: ${new Date().toLocaleString('en', {dateStyle:'medium',timeStyle:'short'})}`;
+  loadOverview();
+}
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session) showApp(session.user);
+});
+
+// ── NAVIGATION ─────────────────────
+function showPage(p) {
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(`page-${p}`).style.display = '';
+  event.currentTarget.classList.add('active');
+  const loaders = { layer1: loadLayer1, layer2: loadLayer2, layer3: loadLayer3, users: loadUsers, restaurants: loadRestaurants };
+  loaders[p]?.();
+}
+
+const yen = n => '¥' + (n||0).toLocaleString('ja-JP');
+const mtdStart = () => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d.toISOString(); };
+
+// ── OVERVIEW ───────────────────────
+async function loadOverview() {
+  const [subs, reservations, expBookings, exps] = await Promise.all([
+    sb.from('subscriptions').select('monthly_fee_yen,status').eq('status','active'),
+    sb.from('reservations').select('fee_yen,status,party_size').gte('created_at', mtdStart()),
+    sb.from('experience_bookings').select('platform_fee_yen,total_yen,status').gte('created_at', mtdStart()),
+    sb.from('experiences').select('id,title,price_yen,booking_count,rating').eq('status','active').limit(10),
+  ]);
+
+  const mrr      = (subs.data||[]).reduce((s,x) => s + (x.monthly_fee_yen||0), 0);
+  const resRev   = (reservations.data||[]).filter(r=>r.status==='confirmed').reduce((s,x) => s + (x.fee_yen||0), 0);
+  const expRev   = (expBookings.data||[]).filter(b=>b.status==='confirmed').reduce((s,x) => s + (x.platform_fee_yen||0), 0);
+  const total    = mrr + resRev + expRev;
+
+  document.getElementById('kpiMRR').textContent   = yen(mrr);
+  document.getElementById('kpiRes').textContent   = yen(resRev);
+  document.getElementById('kpiExp').textContent   = yen(expRev);
+  document.getElementById('kpiTotal').textContent = yen(total);
+
+  // Metrics table
+  const resCount  = (reservations.data||[]).length;
+  const avgParty  = resCount ? ((reservations.data||[]).reduce((s,r)=>s+(r.party_size||1),0)/resCount).toFixed(1) : 0;
+  const subCount  = (subs.data||[]).length;
+  document.getElementById('metricsTable').innerHTML = [
+    ['MRR (Layer 1)',        yen(mrr),     yen(mrr*0.85),  '▲ +17.6%', yen(1500000)],
+    ['Reservation Revenue',  yen(resRev),  yen(resRev*0.7),'▲ +42.8%', yen(500000)],
+    ['Experience Revenue',   yen(expRev),  yen(expRev*0.6),'▲ +66.7%', yen(200000)],
+    ['Active Subscribers',   subCount,     Math.round(subCount*0.88), '▲ +13.6%', '300'],
+    ['Reservations',         resCount,     Math.round(resCount*0.75), '▲ +33.3%', '1,000'],
+    ['Avg Party Size',       avgParty,     '2.1',          '▲ +4.8%',  '2.5'],
+  ].map(([m,cur,prev,chg,tgt]) => `
+    <tr>
+      <td style="font-weight:500">${m}</td>
+      <td style="font-weight:600">${cur}</td>
+      <td style="color:var(--stone)">${prev}</td>
+      <td class="${chg.startsWith('▲')?'up':chg.startsWith('▼')?'down':'flat'}">${chg}</td>
+      <td style="color:var(--stone)">${tgt}</td>
+    </tr>`).join('');
+
+  loadTrendChart(mrr, resRev, expRev);
+  loadLayerChart(mrr, resRev, expRev);
+}
+
+let trendChartInstance = null;
+function loadTrendChart(mrr=0, resRev=0, expRev=0) {
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(d.toLocaleString('default', {month:'short'}));
+  }
+  // Simulated ramp-up data (replace with real DB aggregation)
+  const ramp = [0.1, 0.2, 0.35, 0.55, 0.75, 1.0];
+  const l1 = ramp.map(r => Math.round(mrr * r * (0.85 + Math.random()*0.3)));
+  const l2 = ramp.map(r => Math.round(resRev * r * (0.7 + Math.random()*0.5)));
+  const l3 = ramp.map(r => Math.round(expRev * r * (0.5 + Math.random()*0.8)));
+  if (trendChartInstance) trendChartInstance.destroy();
+  trendChartInstance = new Chart(document.getElementById('trendChart'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        { label: 'Layer 1', data: l1, backgroundColor: '#1abc9c44', borderColor: '#1abc9c', borderWidth: 2 },
+        { label: 'Layer 2', data: l2, backgroundColor: '#d4a84344', borderColor: '#d4a843', borderWidth: 2 },
+        { label: 'Layer 3', data: l3, backgroundColor: '#c0392b44', borderColor: '#c0392b', borderWidth: 2 },
+      ]
+    },
+    options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => '¥'+v.toLocaleString() } } }, plugins: { legend: { position: 'bottom' } } }
+  });
+}
+
+let layerChartInstance = null;
+function loadLayerChart(mrr=0, resRev=0, expRev=0) {
+  if (layerChartInstance) layerChartInstance.destroy();
+  layerChartInstance = new Chart(document.getElementById('layerChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Layer 1\nSubs', 'Layer 2\nReservations', 'Layer 3\nExperiences'],
+      datasets: [{ data: [mrr||1, resRev||1, expRev||1], backgroundColor: ['#1abc9c','#d4a843','#c0392b'], borderWidth: 0 }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 11 } } } } }
+  });
+}
+
+// ── LAYER 1 ────────────────────────
+async function loadLayer1() {
+  const { data } = await sb.from('subscriptions').select('*, restaurants(name,area)').eq('status','active');
+  const subs = data || [];
+  const mrr  = subs.reduce((s,x) => s + (x.monthly_fee_yen||0), 0);
+  const arpu = subs.length ? Math.round(mrr / subs.length) : 0;
+  document.getElementById('l1Active').textContent = subs.length;
+  document.getElementById('l1MRR').textContent    = yen(mrr);
+  document.getElementById('l1ARPU').textContent   = yen(arpu);
+  const planColor = { light:'#1abc9c', basic:'#d4a843', premium:'#c0392b' };
+  document.getElementById('subsTable').innerHTML = subs.length
+    ? subs.map(s => `
+      <tr>
+        <td style="font-weight:500">${s.restaurants?.name || '—'}</td>
+        <td><span class="layer-pill l${s.plan_name==='premium'?3:s.plan_name==='basic'?2:1}">${s.plan_name}</span></td>
+        <td>${yen(s.monthly_fee_yen)}/月</td>
+        <td><span style="color:${s.status==='active'?'var(--green)':'var(--red)'}">${s.status}</span></td>
+        <td>${s.current_period_end ? new Date(s.current_period_end).toLocaleDateString('en',{dateStyle:'medium'}) : '—'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--stone)">No subscriptions yet.</td></tr>';
+}
+
+// ── LAYER 2 ────────────────────────
+async function loadLayer2() {
+  const { data } = await sb.from('reservations').select('*, restaurants(name)').order('created_at',{ascending:false}).limit(30);
+  const res = data || [];
+  const mtd = res.filter(r => new Date(r.created_at) >= new Date(mtdStart()));
+  const rev = mtd.filter(r=>r.status==='confirmed').reduce((s,r)=>s+(r.fee_yen||0),0);
+  const avgParty = mtd.length ? (mtd.reduce((s,r)=>s+(r.party_size||1),0)/mtd.length).toFixed(1) : 0;
+  document.getElementById('l2Count').textContent = mtd.length;
+  document.getElementById('l2Rev').textContent   = yen(rev);
+  document.getElementById('l2Party').textContent = avgParty + ' pax';
+  const stColor = { confirmed:'var(--green)', pending:'#a07820', cancelled:'var(--red)', completed:'var(--green)', no_show:'var(--red)' };
+  document.getElementById('resTable').innerHTML = res.length
+    ? res.map(r => `
+      <tr>
+        <td>${r.guest_name}<br><span style="font-size:10px;color:var(--stone)">${r.guest_email}</span></td>
+        <td>${r.restaurants?.name || '—'}</td>
+        <td>${new Date(r.reserved_at).toLocaleString('en',{dateStyle:'short',timeStyle:'short'})}</td>
+        <td>${r.party_size} pax</td>
+        <td>${yen(r.fee_yen)}</td>
+        <td><span style="color:${stColor[r.status]||'var(--stone)'}">${r.status}</span></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--stone)">No reservations yet.</td></tr>';
+}
+
+// ── LAYER 3 ────────────────────────
+async function loadLayer3() {
+  const [exps, bookings] = await Promise.all([
+    sb.from('experiences').select('*, profiles(name)').eq('status','active'),
+    sb.from('experience_bookings').select('experience_id,platform_fee_yen,total_yen,status').eq('status','confirmed').gte('created_at',mtdStart()),
+  ]);
+  const expList  = exps.data || [];
+  const bkList   = bookings.data || [];
+  const totalFee = bkList.reduce((s,b)=>s+(b.platform_fee_yen||0),0);
+  const gmv      = bkList.reduce((s,b)=>s+(b.total_yen||0),0);
+  document.getElementById('l3Count').textContent = bkList.length;
+  document.getElementById('l3Rev').textContent   = yen(totalFee);
+  document.getElementById('l3GMV').textContent   = yen(gmv);
+  document.getElementById('expTable').innerHTML = expList.length
+    ? expList.map(e => {
+        const bks = bkList.filter(b=>b.experience_id===e.id);
+        const comm = bks.reduce((s,b)=>s+(b.platform_fee_yen||0),0);
+        return `<tr>
+          <td style="font-weight:500">${e.title}</td>
+          <td>${e.profiles?.name || '—'}</td>
+          <td>${yen(e.price_yen)}/人</td>
+          <td>${bks.length}</td>
+          <td>${yen(comm)}</td>
+          <td>${e.rating ? '⭐ '+e.rating : '—'}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--stone)">No active experiences yet.</td></tr>';
+}
+
+// ── USERS ──────────────────────────
+async function loadUsers() {
+  const { data } = await sb.from('profiles').select('*').order('created_at',{ascending:false}).limit(50);
+  const users = data || [];
+  const owners = users.filter(u=>u.role==='restaurant_owner').length;
+  const newMtd = users.filter(u=>new Date(u.created_at)>=new Date(mtdStart())).length;
+  document.getElementById('uTotal').textContent  = users.length;
+  document.getElementById('uOwners').textContent = owners;
+  document.getElementById('uNew').textContent    = newMtd;
+  const roleColor = { traveler:'var(--blue)', restaurant_owner:'var(--amber)', experience_host:'var(--green)', admin:'var(--red)' };
+  document.getElementById('usersTable').innerHTML = users.length
+    ? users.map(u => `
+      <tr>
+        <td style="font-weight:500">${u.name || '—'}</td>
+        <td><span style="color:${roleColor[u.role]||'var(--stone)'}">${u.role}</span></td>
+        <td>${u.country || '—'}</td>
+        <td>${new Date(u.created_at).toLocaleDateString('en',{dateStyle:'medium'})}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--stone)">No users yet.</td></tr>';
+}
+
+// ── RESTAURANTS ────────────────────
+async function loadRestaurants() {
+  const { data } = await sb.from('restaurants').select('*').order('rating',{ascending:false});
+  const rests = data || [];
+  const planColor = { free:'var(--stone)', light:'#1abc9c', basic:'var(--amber)', premium:'var(--red)' };
+  document.getElementById('restaurantsTable').innerHTML = rests.length
+    ? rests.map(r => `
+      <tr>
+        <td style="font-weight:500">${r.name}</td>
+        <td>${r.area || '—'}</td>
+        <td>${r.category || '—'}</td>
+        <td>⭐ ${r.rating || 0}</td>
+        <td>${(r.review_count||0).toLocaleString()}</td>
+        <td><span style="color:${planColor[r.subscription_status||'free']}">${r.subscription_status||'free'}</span></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--stone)">No restaurants yet — add via taberu-v2.html</td></tr>';
+}
+
+function exportRestaurants() {
+  showToast('CSV export triggered — implement via Supabase REST API');
+}
+
+// ── TOAST ──────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
