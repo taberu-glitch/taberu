@@ -2140,23 +2140,9 @@ async function bulkImportFromPlaces(searchTerms) {
   return results;
 }
 
-/*
-USAGE: Once you have a Places API key:
-1. Set PLACES_KEY above
-2. Uncomment the <script> tag in <head>
-3. The "Auto-fill from Google" button appears in Add Restaurant
-4. For bulk import (1000 Michelin restaurants):
-
-const MICHELIN_SEARCHES = [
-  'Sukiyabashi Jiro Tokyo',
-  'Narisawa Tokyo', 
-  'Den Tokyo',
-  // ... add more
-];
-bulkImportFromPlaces(MICHELIN_SEARCHES).then(places => {
-  places.forEach(p => { /* save to Supabase */ });
-});
-*/
+// USAGE: Set PLACES_KEY above, then uncomment the Google Maps script tag in <head>.
+// For bulk import: bulkImportFromPlaces(['Jiro Tokyo', 'Narisawa Tokyo', ...])
+//   then save each result: sb.from('restaurants').insert(place)
 
 // ═══════════════════════════════════════
 // INIT
