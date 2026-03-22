@@ -1011,7 +1011,7 @@ function downloadTableCard() {
   </div>
   <div class="footer">taberu.app · Scan to write a review</div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
 <script>
   ['en','zh','ko'].forEach(l => {
     new QRCode(document.getElementById('tc-'+l), {
@@ -1020,7 +1020,7 @@ function downloadTableCard() {
     });
   });
   setTimeout(() => window.print(), 800);
-</script></body></html>`;
+<\/script><\/body><\/html>`;
   const w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
