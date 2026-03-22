@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1c1812">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TABERU">
 <meta name="description" content="Real food reviews for Tokyo from real travelers. Find authentic restaurants with multilingual reviews.">
@@ -826,9 +825,12 @@ let sb;
 try {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 } catch(e) {
-  console.warn('Supabase SDK not loaded:', e);
-  // Create a dummy sb object so the rest of JS doesn't crash
-  sb = { from: () => ({ select: () => ({ eq: () => ({ single: () => Promise.resolve({data:null,error:'SDK not loaded'}) }), limit: () => Promise.resolve({data:[],error:null}), order: () => ({ ascending: () => Promise.resolve({data:[],error:null}) }) }) }), auth: { getSession: () => Promise.resolve({data:{session:null}}), signInWithPassword: () => Promise.resolve({error:{message:'SDK not loaded'}}), signUp: () => Promise.resolve({error:{message:'SDK not loaded'}}), signOut: () => Promise.resolve({}), onAuthStateChange: () => ({}) } };
+  console.warn('Supabase SDK not loaded yet, using fallback');
+  sb = {
+    from: () => ({ select: () => ({ eq: () => ({ single: () => Promise.resolve({data:null,error:'no sdk'}) }), limit: () => Promise.resolve({data:[],error:null}), order: () => ({ ascending: () => Promise.resolve({data:[],error:null}), descending: () => Promise.resolve({data:[],error:null}) }) }), insert: () => ({ select: () => ({ single: () => Promise.resolve({data:null,error:'no sdk'}) }) }), update: () => ({ eq: () => Promise.resolve({data:null,error:null}) }) }),
+    auth: { getSession: () => Promise.resolve({data:{session:null}}), signInWithPassword: () => Promise.resolve({error:{message:'SDK not loaded'}}), signUp: () => Promise.resolve({error:{message:'SDK not loaded'}}), signOut: () => Promise.resolve({}), onAuthStateChange: () => ({ data: { subscription: { unsubscribe: ()=>{} } } }) },
+    rpc: () => Promise.resolve({data:null,error:null})
+  };
 }
 let stripe = null;
 try { stripe = Stripe(STRIPE_KEY); } catch(e) {}
