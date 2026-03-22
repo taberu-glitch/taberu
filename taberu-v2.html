@@ -1001,7 +1001,7 @@ async function loadRestaurantsFromDB() {
     const error = res?.error;
     if (error || !data || data.length === 0) return false;
     const mapped = data.map(r => ({
-        id: r.id, name: r.name, city: r.city || 'Tokyo', area: r.area || 'shinjuku',
+        id: (r.id||'').trim(), name: r.name, city: r.city || 'Tokyo', area: r.area || 'shinjuku',
         category: r.category || 'ramen', emoji: r.emoji || '🍽️',
         price: r.price_range || '¥¥', rating: parseFloat(r.rating) || 0,
         reviewCount: parseInt(r.review_count) || 0, tags: r.tags || [],
@@ -1421,7 +1421,7 @@ function renderCards(){
     const badges=trustBadgesHtml(r.trust);
     return `
     <div class="rcard" style="animation-delay:${i*.04}s">
-      <div class="rcard-img" style="background:${BG_MAP[r.category]||'#f5f0e8'}" onclick="openDetail(${JSON.stringify(r.id)})">
+      <div class="rcard-img" style="background:${BG_MAP[r.category]||'#f5f0e8'}" onclick="openDetail('${(r.id||'').trim()}')">
         ${r.photos.length?`<img class="rcard-photo" src="${r.photos[0]}" alt="" onerror="this.style.display='none'">`:
           `<span>${r.emoji}</span>`}
         ${i===0?'<div class="rcard-rank rk1">1</div>':i===1?'<div class="rcard-rank rk2">2</div>':i===2?'<div class="rcard-rank rk3">3</div>':''}
@@ -1430,11 +1430,11 @@ function renderCards(){
       <div class="rcard-body">
         <div>
           <div class="rcard-top">
-            <div class="rcard-name" onclick="openDetail(${JSON.stringify(r.id)})">${r.name}</div>
-            <button class="save-btn ${saved?'saved':''}" onclick="toggleSave(${JSON.stringify(r.id)})">${saved?'❤️':'🤍'}</button>
+            <div class="rcard-name" onclick="openDetail('${(r.id||'').trim()}')">${r.name}</div>
+            <button class="save-btn ${saved?'saved':''}" onclick="toggleSave('${(r.id||'').trim()}')">${saved?'❤️':'🤍'}</button>
           </div>
-          <div class="rcard-loc" onclick="openDetail(${JSON.stringify(r.id)})">📍 ${r.city}</div>
-          <div class="rcard-stars" onclick="openDetail(${JSON.stringify(r.id)})">
+          <div class="rcard-loc" onclick="openDetail('${(r.id||'').trim()}')">📍 ${r.city}</div>
+          <div class="rcard-stars" onclick="openDetail('${(r.id||'').trim()}')">
             <span class="stars-gold">${starsHtml(r.rating)}</span>
             <span class="rating-val">${r.rating}</span>
             <span class="review-ct">(${r.reviewCount.toLocaleString()})</span>
@@ -1442,7 +1442,7 @@ function renderCards(){
           ${badges?`<div class="trust-badges">${badges}</div>`:''}
           <div class="rcard-tags">${r.tags.slice(0,3).map(t=>`<span class="rtag">${t}</span>`).join('')}</div>
         </div>
-        <div class="rcard-preview" onclick="openDetail(${JSON.stringify(r.id)})">${(r.tips||r.reviews[0]?.text||'').slice(0,75)}…</div>
+        <div class="rcard-preview" onclick="openDetail('${(r.id||'').trim()}')">${(r.tips||r.reviews[0]?.text||'').slice(0,75)}…</div>
       </div>
     </div>`;
   }).join('');
@@ -1453,7 +1453,7 @@ function renderCards(){
 // ═══════════════════════════════════════
 function renderRanking(){
   document.getElementById('rankList').innerHTML=[...DB].sort((a,b)=>b.rating-a.rating).slice(0,5).map((r,i)=>`
-    <div class="rank-item" onclick="openDetail(${JSON.stringify(r.id)})">
+    <div class="rank-item" onclick="openDetail('${(r.id||'').trim()}')">
       <div class="rank-num ${['r1','r2','r3','rn','rn'][i]}">${i+1}</div>
       <div class="rank-emoji">${r.emoji}</div>
       <div class="rank-info"><div class="rank-name">${r.name}</div><div class="rank-city">${r.city.split(',')[0]}</div></div>
@@ -1462,13 +1462,13 @@ function renderRanking(){
 }
 function renderMapPins(){
   document.getElementById('mapPins').innerHTML=DB.map(r=>`
-    <div class="map-pin" style="left:${r.mapX}%;top:${r.mapY}%" onclick="mapPinClick(${JSON.stringify(r.id)})">
+    <div class="map-pin" style="left:${r.mapX}%;top:${r.mapY}%" onclick="mapPinClick('${(r.id||'').trim()}')">
       <div class="pin-dot ${isSaved(r.id)?'saved-pin':''}"><span>${r.emoji}</span></div>
       <div class="pin-label">${r.name.split(' ').slice(0,2).join(' ')}</div>
     </div>`).join('');
 }
 function mapPinClick(id){
-  const r=DB.find(x=>x.id===id);if(!r)return;
+  const cleanId=(id||'').trim();const r=DB.find(x=>x.id===cleanId);if(!r)return;activeId=cleanId;
   document.getElementById('map-card-name').textContent=r.name;
   document.getElementById('map-card-sub').innerHTML=`📍 ${r.city.split(',')[0]} · ${starsHtml(r.rating)} ${r.rating} &nbsp;<a href="${gmapUrl(r)}" target="_blank" style="color:var(--amber);font-size:10px;text-decoration:none">Maps ↗</a>`;
   openDetail(id);
@@ -1478,7 +1478,7 @@ function mapPinClick(id){
 // PLANNER
 // ═══════════════════════════════════════
 async function toggleSave(id){
-  const r=DB.find(x=>x.id===id);if(!r)return;
+  const cleanId=(id||'').trim();const r=DB.find(x=>x.id===cleanId);if(!r)return;activeId=cleanId;
   if(isSaved(id)){
     plannerItems=plannerItems.filter(p=>p.id!==id);
     await dbDelete(id).catch(()=>{});showToast(tt('toastUnsaved'));
@@ -1539,8 +1539,7 @@ function exportPlan(){
 // DETAIL MODAL
 // ═══════════════════════════════════════
 async function openDetail(id){
-  activeId=id;
-  const r=DB.find(x=>x.id===id);if(!r)return;
+  const cleanId=(id||'').trim();const r=DB.find(x=>x.id===cleanId);if(!r)return;activeId=cleanId;
   // Load fresh reviews from Supabase (non-blocking - modal opens regardless)
   loadReviewsFromDB(id).catch(()=>{});
   document.getElementById('modalName').textContent=r.name;
