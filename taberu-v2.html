@@ -826,10 +826,29 @@ try {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 } catch(e) {
   console.warn('Supabase SDK not loaded yet, using fallback');
+  // Proper chainable dummy so nothing crashes when SDK is slow/unavailable
+  const _pr = (v={data:null,error:null}) => Promise.resolve(v);
+  const _chain = () => {
+    const c = {
+      select:()=>c, eq:()=>c, neq:()=>c, gte:()=>c, lte:()=>c, gt:()=>c, lt:()=>c,
+      order:()=>c, limit:()=>c, single:()=>_pr({data:null,error:'no_sdk'}),
+      ilike:()=>c, in:()=>c, contains:()=>c, is:()=>c, not:()=>c, filter:()=>c,
+      insert:()=>c, update:()=>c, upsert:()=>c, delete:()=>c,
+      ascending:()=>_pr({data:[],error:null}),
+      then:(fn)=>_pr({data:[],error:null}).then(fn),
+    };
+    return c;
+  };
   sb = {
-    from: () => ({ select: () => ({ eq: () => ({ single: () => Promise.resolve({data:null,error:'no sdk'}) }), limit: () => Promise.resolve({data:[],error:null}), order: () => ({ ascending: () => Promise.resolve({data:[],error:null}), descending: () => Promise.resolve({data:[],error:null}) }) }), insert: () => ({ select: () => ({ single: () => Promise.resolve({data:null,error:'no sdk'}) }) }), update: () => ({ eq: () => Promise.resolve({data:null,error:null}) }) }),
-    auth: { getSession: () => Promise.resolve({data:{session:null}}), signInWithPassword: () => Promise.resolve({error:{message:'SDK not loaded'}}), signUp: () => Promise.resolve({error:{message:'SDK not loaded'}}), signOut: () => Promise.resolve({}), onAuthStateChange: () => ({ data: { subscription: { unsubscribe: ()=>{} } } }) },
-    rpc: () => Promise.resolve({data:null,error:null})
+    from: () => _chain(),
+    auth: {
+      getSession: () => _pr({data:{session:null}}),
+      signInWithPassword: () => _pr({error:{message:'SDK not loaded'}}),
+      signUp: () => _pr({error:{message:'SDK not loaded'}}),
+      signOut: () => _pr({}),
+      onAuthStateChange: () => ({data:{subscription:{unsubscribe:()=>{}}}})
+    },
+    rpc: () => _pr({data:null,error:null})
   };
 }
 let stripe = null;
@@ -973,27 +992,32 @@ async function sbReady() {
 
 async function loadRestaurantsFromDB() {
   try {
-    const { data, error } = await sb.from('restaurants').select('*').order('rating', { ascending: false });
-    if (error || !data?.length) return false;
-    // Supabase has data — replace seed data
+    const res = await sb.from('restaurants').select('*').order('rating', { ascending: false });
+    const data = res?.data;
+    const error = res?.error;
+    if (error || !data || data.length === 0) return false;
     const mapped = data.map(r => ({
-        id: r.id, name: r.name, city: r.city, area: r.area,
-        category: r.category, emoji: r.emoji || '🍽️',
-        price: r.price_range, rating: r.rating || 0,
-        reviewCount: r.review_count || 0, tags: r.tags || [],
+        id: r.id, name: r.name, city: r.city || 'Tokyo', area: r.area || 'shinjuku',
+        category: r.category || 'ramen', emoji: r.emoji || '🍽️',
+        price: r.price_range || '¥¥', rating: parseFloat(r.rating) || 0,
+        reviewCount: parseInt(r.review_count) || 0, tags: r.tags || [],
         tips: r.tips || '', phone: r.phone || '',
         website: r.website || '', hours: r.hours || '',
         address_ja: r.address_ja || '', address_en: r.address_en || '',
         gmap_query: r.gmap_query || r.name + ' Tokyo',
         trust: r.trust_badges || {},
         reservation_fee: r.reservation_fee || 440,
-        mapX: r.map_x || 40, mapY: r.map_y || 40,
+        mapX: parseFloat(r.map_x) || 40, mapY: parseFloat(r.map_y) || 40,
         photos: r.photos || [], reviews: [], _sbId: r.id
     }));
+    // Only replace seed data if we got real data back
     DB.length = 0;
     mapped.forEach(r => DB.push(r));
     return true;
-  } catch(e) { return false; }
+  } catch(e) {
+    console.warn('loadRestaurantsFromDB error:', e);
+    return false;
+  }
 }
 
 async function loadReviewsFromDB(restaurantId) {
