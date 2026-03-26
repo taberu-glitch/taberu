@@ -2,2217 +2,563 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#1c1812">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TABERU">
-<meta name="description" content="Real food reviews for Tokyo from real travelers. Find authentic restaurants with multilingual reviews.">
-<title>TABERU — Eat Tokyo</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍜</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Sans+JP:wght@300;400;500&family=Noto+Sans+KR:wght@300;400&family=Noto+Sans+SC:wght@300;400&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUGOOOI JAPAN!</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Google Places API: replace YOUR_PLACES_KEY after getting key from console.cloud.google.com -->
-<!-- Stripe SDK: uncomment after adding your STRIPE_KEY -->
-<!-- <script src="https://js.stripe.com/v3/"></script> -->
 <style>
-:root{
-  --void:#0d0b08;--charcoal:#1c1812;--warm-dark:#2a2318;
-  --paper:#f7f2e8;--cream:#ede6d4;--parchment:#e4dac5;
-  --red:#c0392b;--red-deep:#922b21;
-  --amber:#d4a843;--amber-pale:#f0d080;
-  --moss:#5a6b4e;--stone:#8a7d6a;--fog:#b8ad9e;--border:#d9cfbc;
-  --shadow:rgba(13,11,8,.15);
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bottom:env(safe-area-inset-bottom,0px);
-}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent}
-body{font-family:'Noto Sans JP',sans-serif;background:var(--paper);color:var(--void);min-height:100vh;overflow-x:hidden}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--cream)}::-webkit-scrollbar-thumb{background:var(--stone);border-radius:99px}
-
-/* ── PWA INSTALL BANNER ── */
-#pwa-banner{display:none;background:var(--charcoal);padding:10px 20px;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.08)}
-#pwa-banner.show{display:flex}
-#pwa-banner span{flex:1;font-size:13px;color:rgba(255,255,255,.75)}
-.pwa-btn{padding:6px 14px;border-radius:5px;border:none;font-family:inherit;font-size:12px;cursor:pointer;transition:all .2s}
-.pwa-install{background:var(--amber);color:var(--void);font-weight:600}
-.pwa-dismiss{background:transparent;color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.15)}
-
-/* ── LANG BAR ── */
-#langBar{background:var(--void);display:flex;align-items:center;justify-content:flex-end;padding:6px 20px;gap:6px}
-.lang-btn{padding:4px 11px;border-radius:99px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;transition:all .2s;font-family:inherit}
-.lang-btn:hover,.lang-btn.active{background:var(--amber);border-color:var(--amber);color:var(--void)}
-
-/* ── HEADER ── */
-header{background:var(--charcoal);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;z-index:200}
-.logo-wrap{display:flex;align-items:center;gap:12px}
-.logo-kanji{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--amber);line-height:1}
-.logo-en{font-family:'Cormorant Garamond',serif;font-size:19px;color:#fff;letter-spacing:4px;line-height:1}
-.logo-sub{font-size:9px;color:var(--fog);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
-.header-nav{display:flex;align-items:center;gap:6px}
-.nav-btn{padding:7px 15px;border-radius:5px;font-size:12px;cursor:pointer;border:none;font-family:inherit;transition:all .2s}
-.nav-ghost{background:transparent;color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.2)}
-.nav-ghost:hover{color:#fff;border-color:rgba(255,255,255,.5)}
-.nav-amber{background:var(--amber);color:var(--void);font-weight:500}
-.nav-amber:hover{background:var(--amber-pale)}
-.nav-plan{background:transparent;color:var(--amber);border:1px solid var(--amber);position:relative}
-.nav-plan:hover{background:var(--amber);color:var(--void)}
-.plan-count{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;border-radius:99px;font-size:10px;padding:1px 5px;min-width:18px;text-align:center;display:none}
-.plan-count.show{display:block}
-
-/* ── AUTH ── */
-.nav-user{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);cursor:pointer;transition:all .2s}
-.nav-user:hover{background:rgba(255,255,255,.14)}
-.nav-avatar{width:26px;height:26px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--void);flex-shrink:0}
-.nav-user-name{font-size:12px;color:rgba(255,255,255,.8);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-
-/* Auth modal */
-.auth-overlay{display:none;position:fixed;inset:0;background:rgba(13,11,8,.85);z-index:700;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
-.auth-overlay.open{display:flex}
-.auth-modal{background:var(--paper);border-radius:16px;width:100%;max-width:420px;overflow:hidden;animation:modalIn .3s cubic-bezier(.22,1,.36,1)}
-.auth-header{background:var(--charcoal);padding:28px 28px 24px;text-align:center}
-.auth-kanji{font-size:44px;color:var(--amber);margin-bottom:8px}
-.auth-title{font-family:'Cormorant Garamond',serif;font-size:24px;color:#fff;margin-bottom:4px}
-.auth-subtitle{font-size:12px;color:rgba(255,255,255,.45)}
-.auth-body{padding:28px}
-.auth-tabs{display:flex;background:var(--cream);border-radius:8px;padding:3px;margin-bottom:24px}
-.auth-tab{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-family:inherit;font-size:13px;cursor:pointer;transition:all .2s;color:var(--stone)}
-.auth-tab.active{background:#fff;color:var(--void);font-weight:500;box-shadow:0 1px 4px rgba(0,0,0,.1)}
-.auth-field{margin-bottom:16px}
-.auth-field label{display:block;font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:500}
-.auth-field input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff;outline:none;color:var(--void);transition:border-color .2s}
-.auth-field input:focus{border-color:var(--red)}
-.auth-field .field-hint{font-size:11px;color:var(--fog);margin-top:5px}
-.auth-submit{width:100%;padding:12px;border-radius:8px;border:none;background:var(--red);color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:4px}
-.auth-submit:hover{background:var(--red-deep)}
-.auth-submit:disabled{opacity:.5;cursor:default}
-.auth-divider{text-align:center;font-size:12px;color:var(--fog);margin:16px 0;position:relative}
-.auth-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border)}
-.auth-divider span{background:var(--paper);padding:0 12px;position:relative}
-.auth-switch{text-align:center;font-size:13px;color:var(--stone)}
-.auth-switch a{color:var(--red);cursor:pointer;text-decoration:none}
-.auth-switch a:hover{text-decoration:underline}
-.auth-error{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);border-radius:6px;padding:10px 13px;font-size:13px;color:var(--red);margin-bottom:14px;display:none}
-.auth-error.show{display:block}
-.auth-success{background:rgba(90,107,78,.08);border:1px solid rgba(90,107,78,.25);border-radius:6px;padding:10px 13px;font-size:13px;color:var(--moss);margin-bottom:14px;display:none}
-.auth-success.show{display:block}
-
-/* User dropdown menu */
-.user-menu{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border-radius:10px;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:200px;z-index:300;overflow:hidden;display:none}
-.user-menu.open{display:block;animation:fadeIn .2s ease}
-.user-menu-header{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--cream)}
-.user-menu-name{font-weight:600;font-size:14px;color:var(--void)}
-.user-menu-email{font-size:11px;color:var(--stone);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.user-menu-item{display:flex;align-items:center;gap:10px;padding:11px 16px;font-size:13px;color:var(--void);cursor:pointer;transition:background .15s;border:none;background:none;width:100%;text-align:left;font-family:inherit}
-.user-menu-item:hover{background:var(--cream)}
-.user-menu-item.danger{color:var(--red)}
-.user-menu-item.danger:hover{background:rgba(192,57,43,.06)}
-.user-menu-sep{height:1px;background:var(--border)}
-.user-wrap{position:relative}
-
-/* ── HERO ── */
-.hero{position:relative;overflow:hidden;background:var(--charcoal);padding:56px 24px 76px;text-align:center}
-.hero-bg-kanji{position:absolute;pointer-events:none;font-size:280px;line-height:1;opacity:.025;color:#fff;font-family:'Cormorant Garamond',serif;top:-20px;left:50%;transform:translateX(-50%);white-space:nowrap}
-.hero-eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--amber);margin-bottom:14px}
-.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,6.5vw,66px);line-height:1.1;color:#fff;margin-bottom:14px}
-.hero h1 em{color:var(--amber);font-style:italic}
-.hero-sub{color:rgba(255,255,255,.5);font-size:14px;max-width:480px;margin:0 auto 32px;line-height:1.7}
-.search-wrap{max-width:580px;margin:0 auto}
-.search-row{display:flex;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.4)}
-.search-row input{flex:1;padding:14px 18px;border:none;outline:none;font-family:inherit;font-size:14px;color:var(--void)}
-.search-loc{padding:0 14px;border:none;background:transparent;border-left:1px solid var(--border);font-family:inherit;font-size:12px;color:var(--stone);outline:none;cursor:pointer}
-.search-btn{padding:14px 20px;background:var(--red);border:none;color:#fff;font-size:15px;cursor:pointer;transition:background .2s}
-.search-btn:hover{background:var(--red-deep)}
-
-/* ── FILTER STRIPS ── */
-.filter-area{background:var(--cream);border-bottom:1px solid var(--border)}
-.cat-strip{padding:12px 20px;display:flex;gap:8px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
-.cat-strip::-webkit-scrollbar{display:none}
-.cat-chip{flex-shrink:0;padding:7px 16px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.cat-chip:hover{border-color:var(--red)}
-.cat-chip.active{background:var(--void);border-color:var(--void);color:#fff}
-
-/* Special filters bar */
-.special-strip{padding:8px 20px 12px;display:flex;gap:6px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
-.special-strip::-webkit-scrollbar{display:none}
-.sf-chip{flex-shrink:0;padding:5px 12px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:4px}
-.sf-chip:hover{border-color:var(--amber)}
-.sf-chip.active{background:var(--amber);border-color:var(--amber);color:var(--void);font-weight:500}
-
-/* Community filter */
-.community-strip{padding:6px 20px 10px;display:flex;gap:6px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
-.community-strip::-webkit-scrollbar{display:none}
-.cf-label{font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;margin-right:4px;flex-shrink:0}
-.cf-chip{flex-shrink:0;padding:4px 10px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;cursor:pointer;transition:all .2s;white-space:nowrap}
-.cf-chip:hover{border-color:var(--moss)}
-.cf-chip.active{background:var(--moss);border-color:var(--moss);color:#fff}
-
-/* ── LAYOUT ── */
-.container{max-width:1120px;margin:0 auto;padding:32px 20px}
-.two-col{display:grid;grid-template-columns:1fr 340px;gap:28px;align-items:start}
-.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.sec-title{font-family:'Cormorant Garamond',serif;font-size:22px;display:flex;align-items:center;gap:10px}
-.sec-title::after{content:'';width:36px;height:1px;background:var(--border)}
-.sec-count{font-size:12px;color:var(--stone)}
-
-/* ── CARDS ── */
-.card-list{display:flex;flex-direction:column;gap:16px}
-.rcard{background:#fff;border-radius:10px;border:1px solid var(--border);overflow:hidden;cursor:pointer;display:grid;grid-template-columns:130px 1fr;transition:box-shadow .2s,transform .2s;animation:fadeIn .35s ease both;position:relative}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.rcard:hover{box-shadow:0 6px 22px var(--shadow);transform:translateY(-2px)}
-.rcard-img{height:130px;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;flex-shrink:0;overflow:hidden}
-.rcard-photo{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.rcard-rank{position:absolute;top:7px;left:7px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
-.rk1{background:var(--amber);color:var(--void)}.rk2{background:#b0bec5;color:#fff}.rk3{background:#a0785a;color:#fff}
-.price-badge{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.65);color:#fff;font-size:9px;padding:2px 6px;border-radius:99px}
-.rcard-body{padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between}
-.rcard-top{display:flex;justify-content:space-between;align-items:flex-start}
-.rcard-name{font-family:'Cormorant Garamond',serif;font-size:17px;margin-bottom:2px;flex:1}
-.save-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:0 0 0 6px;flex-shrink:0;opacity:.5;transition:all .2s}
-.save-btn:hover,.save-btn.saved{opacity:1}
-.save-btn.saved{color:var(--red)}
-.rcard-loc{font-size:11px;color:var(--stone);margin-bottom:6px}
-.rcard-stars{display:flex;align-items:center;gap:5px;margin-bottom:6px}
-.stars-gold{color:var(--amber);font-size:12px;letter-spacing:.5px}
-.rating-val{font-weight:500;font-size:13px}
-.review-ct{font-size:11px;color:var(--fog)}
-/* TRUST BADGES */
-.trust-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
-.tbadge{font-size:10px;padding:2px 7px;border-radius:99px;border:1px solid;display:flex;align-items:center;gap:3px}
-.tbadge-en{background:rgba(66,133,244,.08);color:#3367d6;border-color:rgba(66,133,244,.25)}
-.tbadge-card{background:rgba(52,168,83,.08);color:#2d7a3a;border-color:rgba(52,168,83,.25)}
-.tbadge-res{background:rgba(234,67,53,.08);color:#c0392b;border-color:rgba(234,67,53,.25)}
-.tbadge-halal{background:rgba(212,168,67,.1);color:#a07820;border-color:rgba(212,168,67,.3)}
-.tbadge-vegan{background:rgba(90,107,78,.1);color:#3d5c30;border-color:rgba(90,107,78,.3)}
-.tbadge-solo{background:rgba(155,89,182,.1);color:#7d3c98;border-color:rgba(155,89,182,.3)}
-.rcard-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
-.rtag{font-size:10px;padding:2px 7px;border-radius:99px;background:var(--cream);color:var(--stone);border:1px solid var(--border)}
-.rcard-preview{font-size:11px;color:var(--stone);line-height:1.5}
-
-/* ── MAP ── */
-.map-panel{background:var(--charcoal);border-radius:12px;overflow:hidden;position:sticky;top:76px;box-shadow:0 4px 18px var(--shadow)}
-.map-view{height:380px;position:relative;overflow:hidden;background:#0c1810}
-.map-svg-wrap{width:100%;height:100%}
-.map-placeholder-msg{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-size:11px;padding:7px 14px;border-radius:99px;white-space:nowrap}
-.map-pins{position:absolute;inset:0;pointer-events:none}
-.map-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;pointer-events:all;display:flex;flex-direction:column;align-items:center;transition:transform .2s}
-.map-pin:hover{transform:translate(-50%,-110%) scale(1.15)}
-.pin-dot{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--red);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-.pin-dot.saved-pin{background:var(--amber)}
-.pin-dot span{transform:rotate(45deg);font-size:12px}
-.pin-label{margin-top:3px;background:rgba(0,0,0,.8);color:#fff;font-size:9px;padding:2px 7px;border-radius:99px;white-space:nowrap}
-.map-info{padding:14px 16px}
-.map-info h3{font-family:'Cormorant Garamond',serif;color:#fff;font-size:16px;margin-bottom:3px}
-.map-info p{font-size:11px;color:var(--fog)}
-
-/* ── RANKING ── */
-.rank-card{background:#fff;border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:14px}
-.rank-card-header{background:var(--charcoal);padding:12px 14px;display:flex;align-items:center;gap:8px}
-.rank-card-header h3{font-family:'Cormorant Garamond',serif;color:#fff;font-size:15px}
-.rank-list{padding:6px 0}
-.rank-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
-.rank-item:last-child{border-bottom:none}
-.rank-item:hover{background:var(--cream)}
-.rank-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
-.r1{background:var(--amber);color:var(--void)}.r2{background:#b0bec5;color:#fff}.r3{background:#a0785a;color:#fff}.rn{background:var(--cream);color:var(--stone);border:1px solid var(--border)}
-.rank-emoji{font-size:16px}.rank-info{flex:1;min-width:0}
-.rank-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rank-city{font-size:10px;color:var(--stone)}
-.rank-score{font-weight:600;font-size:13px;color:var(--amber)}
-
-/* ── MODALS ── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(13,11,8,.8);z-index:500;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(4px)}
+:root{--void:#0d0b08;--charcoal:#1c1812;--warm:#2a2318;--paper:#f7f2e8;--cream:#ede6d4;--parchment:#e4dac5;--amber:#d4a843;--amberd:#8a6420;--moss:#5a6b4e;--stone:#8a7d6a;--fog:#b8ad9e;--border:#d9cfbc;--red:#c0392b;--blue:#1a4a6e;}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--paper);color:var(--charcoal);font-size:14px;line-height:1.7}
+header{background:var(--charcoal);position:sticky;top:0;z-index:200}
+.htop{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:54px;border-bottom:1px solid rgba(255,255,255,.07)}
+.logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--amber);letter-spacing:1px;cursor:pointer}
+.logosub{font-size:10px;color:rgba(255,255,255,.35);margin-top:-2px}
+.lbtns{display:flex;gap:2px}
+.lbtn{padding:4px 10px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;font-size:11px;border-radius:4px;transition:all .15s}
+.lbtn.active{background:var(--amber);color:#fff;font-weight:700}
+.btnhost{padding:7px 16px;background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer}
+.tabnav{display:flex;padding:0 20px;overflow-x:auto}
+.tabbtn{padding:12px 18px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.45);cursor:pointer;font-family:inherit;font-size:13px;white-space:nowrap;transition:all .15s}
+.tabbtn:hover{color:rgba(255,255,255,.75)}
+.tabbtn.active{color:var(--amber);border-bottom-color:var(--amber)}
+.notif{display:inline-block;width:7px;height:7px;background:var(--red);border-radius:50%;margin-left:4px;vertical-align:middle}
+.tabpage{display:none}.tabpage.active{display:block}
+.hero{background:var(--charcoal);padding:56px 32px 60px;text-align:center;position:relative;overflow:hidden}
+.herobg{position:absolute;font-family:'Cormorant Garamond',serif;font-size:320px;color:rgba(212,168,67,.04);top:-30px;left:50%;transform:translateX(-50%);line-height:1;pointer-events:none;white-space:nowrap}
+.heroin{position:relative;z-index:1}
+.eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);margin-bottom:16px}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:400;color:#fff;line-height:1.1;margin-bottom:14px}
+.hero h1 em{font-style:italic;color:var(--amber)}
+.herosub{font-size:15px;color:rgba(255,255,255,.5);max-width:540px;margin:0 auto 36px;line-height:1.8}
+.herostats{display:flex;gap:40px;justify-content:center}
+.statn{font-family:'Cormorant Garamond',serif;font-size:34px;color:var(--amber)}
+.statl{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px}
+.cbanner{background:rgba(90,107,78,.1);border:1px solid rgba(90,107,78,.2);border-left:3px solid var(--moss);border-radius:8px;padding:11px 16px;margin:20px 28px 0;font-size:12px;color:var(--stone);line-height:1.7}
+.cbanner strong{color:var(--charcoal)}
+.catstrip{padding:16px 28px;background:#fff;border-bottom:1px solid var(--parchment);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.catlabel{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--fog);margin-right:4px}
+.cchip{padding:6px 14px;border-radius:99px;border:1px solid var(--border);font-size:12px;color:var(--stone);cursor:pointer;transition:all .15s;background:#fff;white-space:nowrap}
+.cchip:hover,.cchip.active{background:var(--charcoal);color:var(--amber);border-color:var(--charcoal)}
+.container{max-width:1100px;margin:0 auto;padding:28px 28px 48px}
+.gridhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px}
+.gridtitle{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--charcoal)}
+.gridcount{font-size:13px;color:var(--stone)}
+.expgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.expcard{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--parchment);cursor:pointer;transition:transform .2s,box-shadow .2s}
+.expcard:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.08)}
+.expthumb{height:180px;background:var(--charcoal);display:flex;align-items:center;justify-content:center;font-size:64px;position:relative}
+.expbadges{position:absolute;top:10px;left:10px;display:flex;gap:5px;flex-wrap:wrap}
+.badge{padding:3px 9px;border-radius:99px;font-size:10px;font-weight:700}
+.bnew{background:rgba(212,168,67,.9);color:#fff}
+.bfew{background:rgba(26,74,110,.85);color:#fff}
+.bcancel{background:rgba(90,107,78,.85);color:#fff}
+.expprice{position:absolute;bottom:10px;right:10px;background:rgba(13,11,8,.75);color:var(--amber);font-family:'Cormorant Garamond',serif;font-size:17px;padding:3px 10px;border-radius:6px}
+.expbody{padding:14px 16px}
+.expcat{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--amberd);margin-bottom:5px}
+.expname{font-size:15px;font-weight:500;color:var(--charcoal);margin-bottom:3px;line-height:1.3}
+.exphost{font-size:12px;color:var(--stone);margin-bottom:8px}
+.expmeta{display:flex;gap:10px;font-size:11px;color:var(--fog);flex-wrap:wrap}
+.expfoot{padding:10px 16px;border-top:1px solid var(--parchment);display:flex;align-items:center;justify-content:space-between}
+.exprating{font-size:13px;font-weight:600;color:var(--charcoal)}
+.exprevs{font-size:11px;color:var(--stone)}
+.btnbook{padding:7px 16px;background:var(--amber);border:none;border-radius:8px;color:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.overlay{display:none;position:fixed;inset:0;background:rgba(13,11,8,.65);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .overlay.open{display:flex}
-.modal{background:var(--paper);border-radius:14px;width:100%;max-width:680px;overflow:hidden;margin:auto;animation:modalIn .3s cubic-bezier(.22,1,.36,1)}
-@keyframes modalIn{from{transform:translateY(36px) scale(.97);opacity:0}to{transform:none;opacity:1}}
-.modal-hero{height:190px;position:relative;overflow:hidden;background:var(--charcoal);display:flex;align-items:center;justify-content:center;font-size:68px}
-.modal-hero-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.modal-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(13,11,8,.85) 0%,transparent 55%)}
-.modal-hero-info{position:absolute;bottom:18px;left:22px;right:54px}
-.modal-hero-info h2{font-family:'Cormorant Garamond',serif;color:#fff;font-size:24px;line-height:1.2}
-.modal-hero-info p{color:rgba(255,255,255,.6);font-size:12px;margin-top:3px}
-.modal-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:2}
-.modal-close:hover{background:rgba(0,0,0,.8)}
-.modal-tabs{display:flex;background:var(--cream);border-bottom:1px solid var(--border);overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
-.modal-tabs::-webkit-scrollbar{display:none}
-.m-tab{flex:1;min-width:fit-content;padding:12px 10px;border:none;background:transparent;font-family:inherit;font-size:12px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;color:var(--stone);white-space:nowrap}
-.m-tab.active{color:var(--red);border-bottom-color:var(--red);background:#fff}
-.modal-body{padding:22px}
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-
-/* ── REVIEWS ── */
-.review-filter-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.rfbtn{padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:#fff;font-size:11px;cursor:pointer;transition:all .2s}
-.rfbtn:hover{border-color:var(--stone)}
-.rfbtn.active{background:var(--void);border-color:var(--void);color:#fff}
-.review-feed{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
-.rv-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
-.rv-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.rv-user{display:flex;align-items:center;gap:9px}
-.rv-avatar{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:14px;overflow:hidden;flex-shrink:0}
-.rv-name{font-weight:500;font-size:13px}
-.rv-country{font-size:11px;color:var(--stone)}
-.rv-community-badge{font-size:10px;padding:1px 6px;border-radius:99px;background:var(--cream);color:var(--stone);border:1px solid var(--border)}
-.rv-star{color:var(--amber);font-size:12px}
-.rv-text{font-size:13px;line-height:1.65;color:var(--void);margin-bottom:8px}
-.rv-imgs{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap}
-.rv-img{width:66px;height:66px;border-radius:5px;object-fit:cover;border:1px solid var(--border);cursor:pointer;transition:transform .2s}
-.rv-img:hover{transform:scale(1.05)}
-.rv-foot{display:flex;justify-content:space-between;align-items:center}
-.rv-date{font-size:10px;color:var(--fog)}
-.ai-btn{padding:4px 11px;border-radius:99px;border:1px solid var(--amber);background:transparent;color:var(--amber);font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
-.ai-btn:hover{background:var(--amber);color:var(--void)}
-.ai-btn:disabled{opacity:.5;cursor:default}
-.ai-box{margin-top:8px;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,var(--void) 0%,var(--warm-dark) 100%);display:none}
-.ai-box.show{display:block}
-.ai-box-head{padding:9px 13px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,255,255,.07)}
-.ai-gem{width:7px;height:7px;border-radius:50%;background:var(--amber)}
-.ai-badge{font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:1px;font-weight:500}
-.ai-loading-row{display:flex;align-items:center;gap:8px;padding:11px 13px}
-.ai-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--amber);margin:0 2px;animation:bounce .9s infinite}
-.ai-dots span:nth-child(2){animation-delay:.15s}
-.ai-dots span:nth-child(3){animation-delay:.3s}
-@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-.ai-loading-txt{color:rgba(255,255,255,.5);font-size:12px}
-.ai-content{padding:11px 13px;font-size:12px;color:rgba(255,255,255,.85);line-height:1.7}
-.ai-section{margin-bottom:8px}
-.ai-section-label{font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.ai-lang-tag{display:inline-block;background:rgba(212,168,67,.15);color:var(--amber);font-size:10px;padding:1px 7px;border-radius:99px;margin-bottom:6px;border:1px solid rgba(212,168,67,.3)}
-.ai-practical{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.ai-prac-item{background:rgba(255,255,255,.06);border-radius:6px;padding:6px 8px;font-size:11px;color:rgba(255,255,255,.7)}
-.ai-prac-label{color:var(--amber);font-size:10px;margin-bottom:2px}
-
-/* ── WRITE REVIEW ── */
-.write-section{border-top:1px solid var(--border);padding-top:20px}
-.write-title{font-family:'Cormorant Garamond',serif;font-size:19px;margin-bottom:16px}
-.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.form-1col{margin-bottom:12px}
-.fl{display:block;font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;font-weight:500}
-.fi,.fs,.fta{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;background:#fff;outline:none;color:var(--void);transition:border-color .2s}
-.fi:focus,.fs:focus,.fta:focus{border-color:var(--red)}
-.fta{resize:vertical;min-height:80px}
-.star-pick{display:flex;gap:7px;margin-bottom:12px}
-.sp-star{font-size:24px;color:var(--border);background:none;border:none;cursor:pointer;transition:color .15s,transform .15s;line-height:1}
-.sp-star.lit{color:var(--amber)}
-.sp-star:hover{transform:scale(1.2)}
-.photo-upload-area{border:2px dashed var(--border);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px;position:relative}
-.photo-upload-area:hover{border-color:var(--red);background:rgba(192,57,43,.03)}
-.photo-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.photo-upload-area p{font-size:12px;color:var(--stone)}
-.photo-upload-area span{font-size:22px;display:block;margin-bottom:5px}
-.photo-preview{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
-.ph-thumb{width:65px;height:65px;border-radius:5px;object-fit:cover;border:1px solid var(--border)}
-.ph-del{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-/* Trust badge toggles in write form */
-.badge-toggles{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.badge-toggle{padding:5px 11px;border-radius:99px;border:1.5px solid var(--border);background:#fff;font-size:11px;cursor:pointer;transition:all .2s}
-.badge-toggle:hover{border-color:var(--stone)}
-.badge-toggle.on{background:var(--void);border-color:var(--void);color:#fff}
-.submit-row{display:flex;justify-content:flex-end;gap:8px}
-.btn-cancel{padding:8px 18px;border-radius:5px;border:1px solid var(--border);background:transparent;font-family:inherit;font-size:12px;cursor:pointer;color:var(--stone)}
-.btn-submit{padding:8px 22px;border-radius:5px;border:none;background:var(--red);color:#fff;font-family:inherit;font-size:12px;cursor:pointer;transition:background .2s}
-.btn-submit:hover{background:var(--red-deep)}
-
-/* ── INFO TAB ── */
-.info-row{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px}
-.info-row:last-child{border-bottom:none}
-.ir-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
-.ir-label{color:var(--stone);font-size:10px;text-transform:uppercase;letter-spacing:.4px;width:72px;flex-shrink:0;padding-top:1px}
-.ir-val{color:var(--void);flex:1;line-height:1.5}
-.ir-link{color:var(--red);text-decoration:none}
-.ir-link:hover{text-decoration:underline}
-.trust-section{margin-top:14px}
-.trust-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.trust-item{padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;gap:8px;font-size:12px}
-.trust-item.yes{border-color:rgba(52,168,83,.3);background:rgba(52,168,83,.04)}
-.trust-item.no{border-color:rgba(234,67,53,.2);background:rgba(234,67,53,.03);color:var(--stone)}
-.trust-icon{font-size:16px}
-.gmap-btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
-.gmap-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;text-decoration:none;transition:all .2s}
-.gmap-primary{background:#4285F4;color:#fff}
-.gmap-primary:hover{background:#3367d6}
-.gmap-secondary{background:var(--cream);color:var(--void);border:1px solid var(--border)}
-.gmap-secondary:hover{background:var(--parchment)}
-
-/* ── PLANNER PANEL ── */
-.planner-overlay{display:none;position:fixed;inset:0;background:rgba(13,11,8,.8);z-index:600;align-items:flex-start;justify-content:flex-end;backdrop-filter:blur(4px)}
-.planner-overlay.open{display:flex}
-.planner-panel{width:100%;max-width:400px;height:100vh;background:var(--paper);overflow-y:auto;animation:slideLeft .3s cubic-bezier(.22,1,.36,1)}
-@keyframes slideLeft{from{transform:translateX(100%)}to{transform:none}}
-.planner-header{background:var(--charcoal);padding:20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1}
-.planner-header h2{font-family:'Cormorant Garamond',serif;color:#fff;font-size:20px}
-.planner-body{padding:20px}
-.planner-empty{text-align:center;padding:48px 20px;color:var(--stone)}
-.planner-empty-icon{font-size:48px;margin-bottom:14px}
-.plan-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
-.plan-item-info{flex:1;min-width:0}
-.plan-item-name{font-family:'Cormorant Garamond',serif;font-size:15px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.plan-item-meta{font-size:11px;color:var(--stone)}
-.plan-remove{background:none;border:none;cursor:pointer;color:var(--fog);font-size:18px;transition:color .2s;flex-shrink:0}
-.plan-remove:hover{color:var(--red)}
-.plan-day-label{font-size:11px;font-weight:500;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}
-.day-selector{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.day-btn{padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:#fff;font-size:11px;cursor:pointer;transition:all .2s}
-.day-btn.sel{background:var(--amber);border-color:var(--amber);color:var(--void);font-weight:500}
-.planner-export{width:100%;padding:11px;border-radius:8px;border:none;background:var(--red);color:#fff;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;margin-top:16px;transition:background .2s}
-.planner-export:hover{background:var(--red-deep)}
-
-/* ── ADD RESTAURANT ── */
-#addOverlay{display:none}
-#addOverlay.open{display:flex}
-
-/* ── TOAST ── */
-.toast{position:fixed;bottom:calc(24px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(80px);background:var(--void);color:#fff;padding:11px 22px;border-radius:8px;font-size:13px;z-index:9999;transition:transform .3s cubic-bezier(.22,1,.36,1);border-left:4px solid var(--amber);box-shadow:0 4px 14px rgba(0,0,0,.3);white-space:nowrap}
+.modal{background:var(--paper);border-radius:14px;width:92%;max-width:580px;max-height:90vh;overflow-y:auto;position:relative}
+.mclose{position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--stone);z-index:1}
+.mthumb{height:200px;background:var(--charcoal);display:flex;align-items:center;justify-content:center;font-size:72px;border-radius:14px 14px 0 0}
+.mbody{padding:24px}
+.mcat{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--amberd);margin-bottom:5px}
+.mtitle{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;margin-bottom:3px}
+.mhost{font-size:13px;color:var(--stone);margin-bottom:14px}
+.mdesc{font-size:13px;line-height:1.8;margin-bottom:16px}
+.mhls{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:18px}
+.mhl{display:flex;align-items:center;gap:7px;font-size:12px}
+.mhl::before{content:"checkmark";color:var(--moss);font-weight:700;flex-shrink:0;font-size:11px}
+.divider{height:1px;background:var(--parchment);margin:18px 0}
+.seclbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--stone);margin-bottom:10px}
+.depbox{background:rgba(26,74,110,.07);border:1px solid rgba(26,74,110,.18);border-radius:8px;padding:11px 14px;font-size:12px;color:var(--blue);margin-bottom:12px;line-height:1.7}
+.cbox{background:var(--cream);border:1px solid var(--parchment);border-radius:8px;padding:11px 14px;font-size:12px;color:var(--stone);margin-bottom:14px;line-height:1.7}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.bfield{display:flex;flex-direction:column;gap:4px}
+.blabel{font-size:11px;color:var(--stone);font-weight:500}
+.binput,.bselect{padding:9px 11px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;color:var(--charcoal);background:#fff;outline:none}
+.btotal{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-top:1px solid var(--parchment);margin-bottom:14px}
+.btotallbl{font-size:13px;color:var(--stone)}
+.btotalp{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--charcoal)}
+.btnconfirm{width:100%;padding:13px;background:var(--charcoal);border:none;border-radius:10px;color:var(--amber);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.5px}
+.confirmwrap{text-align:center;padding:36px 24px}
+.confirmicon{font-size:52px;margin-bottom:14px}
+.confirmtitle{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--charcoal);margin-bottom:8px}
+.confirmsub{font-size:13px;color:var(--stone);line-height:1.7;margin-bottom:18px}
+.confirmref{background:var(--charcoal);color:var(--amber);font-size:15px;padding:8px 18px;border-radius:8px;display:inline-block;margin-bottom:18px;letter-spacing:2px;font-family:'Courier New',monospace}
+.confirmacts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btnoutline{padding:9px 20px;background:transparent;border:1px solid var(--border);color:var(--charcoal);border-radius:9px;font-family:inherit;font-size:13px;cursor:pointer}
+.aipage{padding:40px 28px;max-width:780px;margin:0 auto}
+.aieyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px;font-family:'Courier New',monospace}
+.aititle{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:400;color:var(--charcoal);line-height:1.15;margin-bottom:8px}
+.aititle em{font-style:italic;color:var(--amberd)}
+.aisub{font-size:14px;color:var(--stone);margin-bottom:26px;line-height:1.8;max-width:520px}
+.aiform{background:#fff;border-radius:12px;border:1px solid var(--border);padding:26px}
+.aiformgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.ailabel{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--stone);margin-bottom:5px}
+.aiinput,.aiselect{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;color:var(--charcoal);background:#fff;outline:none}
+.aitextarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;color:var(--charcoal);background:#fff;outline:none;resize:vertical;min-height:80px}
+.btnai{width:100%;padding:13px;background:var(--charcoal);border:none;border-radius:10px;color:var(--amber);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;letter-spacing:.5px}
+.airesults{margin-top:22px;background:var(--paper);border-radius:10px;border:1px solid var(--border);padding:22px;display:none}
+.airesults.show{display:block}
+.airtitle{font-size:13px;font-weight:700;color:var(--amber);margin-bottom:10px}
+.airtext{font-size:14px;color:var(--charcoal);line-height:1.8;margin-bottom:16px}
+.aircards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.aircard{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:all .15s}
+.aircard:hover{border-color:var(--amber)}
+.aircardname{font-size:13px;font-weight:700;color:var(--charcoal);margin-bottom:4px}
+.aircardwhy{font-size:12px;color:var(--stone);line-height:1.5;margin-bottom:6px}
+.aircardprice{font-size:13px;color:var(--amber);font-weight:700}
+.chatlayout{display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 130px);min-height:480px}
+.chatsidebar{background:#fff;border-right:1px solid var(--border);overflow-y:auto}
+.chatsidehd{padding:14px 16px;border-bottom:1px solid var(--parchment);font-size:13px;font-weight:700;color:var(--charcoal)}
+.chatitem{padding:13px 16px;border-bottom:1px solid var(--parchment);cursor:pointer;display:flex;gap:10px;align-items:flex-start;transition:background .15s}
+.chatitem:hover,.chatitem.active{background:var(--paper)}
+.chatav{width:38px;height:38px;border-radius:50%;background:var(--charcoal);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.chatinfotop{display:flex;justify-content:space-between;align-items:baseline}
+.chatname{font-size:13px;font-weight:700;color:var(--charcoal)}
+.chattime{font-size:11px;color:var(--fog)}
+.chatprev{font-size:12px;color:var(--stone);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.chatunread{width:8px;height:8px;background:var(--red);border-radius:50%;margin-top:6px;flex-shrink:0}
+.chatmain{display:flex;flex-direction:column;background:var(--paper)}
+.chattop{background:#fff;border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:12px}
+.chattopav{width:34px;height:34px;border-radius:50%;background:var(--charcoal);display:flex;align-items:center;justify-content:center;font-size:14px}
+.chattopname{font-size:14px;font-weight:700;color:var(--charcoal)}
+.chattopstatus{font-size:11px;color:var(--moss)}
+.chattopactions{margin-left:auto;display:flex;gap:8px}
+.btnarrive{padding:6px 14px;background:var(--moss);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.btncancelsmall{padding:6px 14px;background:rgba(192,57,43,.08);color:var(--red);border:1px solid rgba(192,57,43,.2);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.chatmsgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;gap:8px;align-items:flex-end;max-width:75%}
+.msg.sent{align-self:flex-end;flex-direction:row-reverse}
+.msgav{width:26px;height:26px;border-radius:50%;background:var(--charcoal);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.msgbub{padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.6}
+.msg.recv .msgbub{background:#fff;border:1px solid var(--border);color:var(--charcoal);border-bottom-left-radius:3px}
+.msg.sent .msgbub{background:var(--charcoal);color:#fff;border-bottom-right-radius:3px}
+.msgt{font-size:10px;color:var(--fog);margin-top:3px;padding:0 2px}
+.msgsys{align-self:center;background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 14px;font-size:12px;color:var(--stone);text-align:center;max-width:90%}
+.chatbar{background:#fff;border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:8px}
+.chatinput{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:13px;resize:none;outline:none;max-height:100px}
+.btnsend{padding:9px 18px;background:var(--charcoal);border:none;border-radius:9px;color:var(--amber);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--charcoal);color:#fff;padding:11px 22px;border-radius:99px;font-size:13px;z-index:500;transition:transform .3s ease;border:1px solid rgba(212,168,67,.25);white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
-
-/* ── LIGHTBOX ── */
-.lightbox{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.93);align-items:center;justify-content:center}
-.lightbox.open{display:flex}
-.lightbox img{max-width:92vw;max-height:92vh;border-radius:8px;object-fit:contain}
-.lb-close{position:absolute;top:18px;right:18px;background:none;border:none;color:#fff;font-size:26px;cursor:pointer}
-
-/* ── RESPONSIVE ── */
-@media(max-width:840px){.two-col{grid-template-columns:1fr}.map-panel{position:static}.map-view{height:260px}.rcard{grid-template-columns:110px 1fr}.form-2col{grid-template-columns:1fr}}
-@media(max-width:500px){.header-nav .nav-ghost{display:none}.rcard{grid-template-columns:1fr}.rcard-img{height:150px}.trust-grid{grid-template-columns:1fr}}
-
-/* ── RESERVATION TAB ── */
-.res-form-box{background:var(--cream);border-radius:10px;padding:20px;margin-bottom:16px}
-.res-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.res-slot{padding:9px 6px;border:1.5px solid var(--border);border-radius:7px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
-.res-slot:hover{border-color:var(--amber)}
-.res-slot.sel{border-color:var(--red);background:rgba(192,57,43,.06)}
-.res-slot.full{opacity:.4;cursor:not-allowed;background:var(--cream)}
-.res-slot-time{font-size:13px;font-weight:500}
-.res-slot-avail{font-size:10px;color:var(--stone);margin-top:2px}
-.res-price-box{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px}
-.res-price-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
-.res-price-row.total{font-weight:600;font-size:14px;border-top:1px solid var(--border);padding-top:8px;margin-top:4px}
-.res-status{text-align:center;padding:28px;border-radius:10px}
-.res-status.success{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2)}
-.res-status.error{background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.2);color:var(--red)}
-.res-confirmation-num{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--moss);margin:10px 0}
-.stripe-element-wrap{border:1.5px solid var(--border);border-radius:6px;padding:11px 13px;background:#fff;margin-bottom:14px;transition:border-color .2s}
-.stripe-element-wrap:focus-within{border-color:var(--red)}
+.hform{padding:24px}
+.hform h2{font-family:'Cormorant Garamond',serif;font-size:26px;margin-bottom:6px}
+.hform p{font-size:13px;color:var(--stone);margin-bottom:20px;line-height:1.7}
+.hform input,.hform select,.hform textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;margin-bottom:10px;outline:none}
+.hform textarea{min-height:80px;resize:vertical}
+@media(max-width:860px){.expgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.expgrid{grid-template-columns:1fr}.aiformgrid{grid-template-columns:1fr}.bgrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
-<!-- PWA INSTALL BANNER -->
-<div id="pwa-banner">
-  <span>📱 Add TABERU to your home screen for offline access</span>
-  <button class="pwa-btn pwa-install" id="pwa-install-btn">Install</button>
-  <button class="pwa-btn pwa-dismiss" id="pwa-dismiss-btn">✕</button>
-</div>
-
-<!-- LANG BAR -->
-<div id="langBar">
-  <button class="lang-btn active" onclick="setLang('en')">EN</button>
-  <button class="lang-btn" onclick="setLang('zh')">中文</button>
-  <button class="lang-btn" onclick="setLang('ko')">한국어</button>
-</div>
-
-<!-- HEADER -->
 <header>
-  <div class="logo-wrap">
-    <div class="logo-kanji">食</div>
+  <div class="htop">
     <div>
-      <div class="logo-en">TABERU</div>
-      <div class="logo-sub" id="logo-sub">Eat Tokyo · Share the Story</div>
+      <div class="logo" onclick="switchTab('discover')">SUGOOOI JAPAN!</div>
+      <div class="logosub" id="lang-note">Better Experiences in Japan</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="lbtns">
+        <button class="lbtn active" onclick="setLang('en')">EN</button>
+        <button class="lbtn" onclick="setLang('zh')">&#20013;&#25991;</button>
+        <button class="lbtn" onclick="setLang('ko')">&#54620;&#44397;&#50612;</button>
+      </div>
+      <button class="btnhost" onclick="openHostModal()">&#10024; Host</button>
     </div>
   </div>
-  <div class="header-nav">
-    <button class="nav-btn nav-ghost" onclick="openAddOverlay()" id="btn-add">＋ Add</button>
-    <button class="nav-btn nav-plan" onclick="openPlanner()" id="btn-plan">
-      🗓 Plan
-      <span class="plan-count" id="planCount">0</span>
-    </button>
-    <button class="nav-btn nav-amber" onclick="openWriteOverlay()" id="btn-review">✏ Review</button>
-
-    <!-- Guest: Login button -->
-    <button class="nav-btn nav-ghost" onclick="openAuth('login')" id="btn-login">🔑 Login</button>
-
-    <!-- Logged in: user avatar + dropdown -->
-    <div class="user-wrap" id="userWrap" style="display:none">
-      <div class="nav-user" onclick="toggleUserMenu()">
-        <div class="nav-avatar" id="navAvatar">?</div>
-        <span class="nav-user-name" id="navUserName"></span>
-      </div>
-      <div class="user-menu" id="userMenu">
-        <div class="user-menu-header">
-          <div class="user-menu-name" id="menuUserName"></div>
-          <div class="user-menu-email" id="menuUserEmail"></div>
-        </div>
-        <button class="user-menu-item" onclick="openPlanner();closeUserMenu()">🗓 My Food Plan</button>
-        <button class="user-menu-item" onclick="openMyReviews()">📝 My Reviews</button>
-        <div class="user-menu-sep"></div>
-        <button class="user-menu-item danger" onclick="logout()">🚪 Log Out</button>
-      </div>
-    </div>
+  <div class="tabnav">
+    <button class="tabbtn active" onclick="switchTab('discover')" id="tbn-discover">&#10024; Explore Japan</button>
+    <button class="tabbtn" onclick="switchTab('ai')" id="tbn-ai">&#10022; AI Match</button>
+    <button class="tabbtn" onclick="switchTab('chat')" id="tbn-chat">&#128172; Messages <span class="notif"></span></button>
   </div>
 </header>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg-kanji">東京食</div>
-  <div class="hero-eyebrow" id="hero-eye">FOOD · TRAVEL · DISCOVERY</div>
-  <h1 id="hero-h1">Eat <em>Tokyo</em>,<br>share the story.</h1>
-  <p class="hero-sub" id="hero-p">Real food reviews from real travelers.<br>Find authentic restaurants trusted by people like you.</p>
-  <div class="search-wrap">
-    <div class="search-row">
-      <input type="text" id="searchInput" placeholder="Ramen in Shinjuku, halal, vegan…" oninput="renderCards()">
-      <select class="search-loc" id="areaFilter" onchange="renderCards()">
-        <option value="">📍 All Tokyo</option>
-        <option value="shinjuku">Shinjuku</option>
-        <option value="shibuya">Shibuya</option>
-        <option value="ginza">Ginza</option>
-        <option value="asakusa">Asakusa</option>
-        <option value="roppongi">Roppongi</option>
-        <option value="akihabara">Akihabara</option>
-        <option value="ikebukuro">Ikebukuro</option>
-      </select>
-      <button class="search-btn" onclick="renderCards()">🔍</button>
+<div class="tabpage active" id="tab-discover">
+  <div class="hero">
+    <div class="herobg">&#12377;&#12372;&#12356;</div>
+    <div class="heroin">
+      <div class="eyebrow">SUGOOOI JAPAN!</div>
+      <h1>Experience Japan <em>deeper.</em><br>Beyond the guidebook.</h1>
+      <p class="herosub">Cooking &middot; Craft &middot; Nature &middot; Festivals &middot; Sake &middot; Farm &mdash; authentic experiences across Japan, in your language.</p>
+      <div class="herostats">
+        <div><div class="statn">120+</div><div class="statl" id="stat-exp">Experiences</div></div>
+        <div><div class="statn">4.9&#9733;</div><div class="statl" id="stat-rating">Avg Rating</div></div>
+        <div><div class="statn">98%</div><div class="statl" id="stat-show">Show-up Rate</div></div>
+      </div>
     </div>
   </div>
-</section>
-
-<!-- FILTER AREA -->
-<div class="filter-area">
-  <div class="cat-strip">
-    <div class="cat-chip active" onclick="setCat('all',this)">🍱 All</div>
-    <div class="cat-chip" onclick="setCat('ramen',this)">🍜 Ramen</div>
-    <div class="cat-chip" onclick="setCat('sushi',this)">🍣 Sushi</div>
-    <div class="cat-chip" onclick="setCat('izakaya',this)">🍶 Izakaya</div>
-    <div class="cat-chip" onclick="setCat('yakiniku',this)">🥩 Yakiniku</div>
-    <div class="cat-chip" onclick="setCat('tempura',this)">🍤 Tempura</div>
-    <div class="cat-chip" onclick="setCat('street',this)">🏮 Street Food</div>
-    <div class="cat-chip" onclick="setCat('cafe',this)">☕ Café</div>
-    <div class="cat-chip" onclick="setCat('udon',this)">🍝 Udon/Soba</div>
+  <div class="cbanner">
+    &#128737;&#65039; <strong>No-Show Protection:</strong> All bookings require a deposit secured at booking. Auto-reminders at 7 days, 3 days, and 24 hours before. Host confirms arrival &mdash; deposit released automatically.
   </div>
-
-  <!-- Special dietary / practical filters -->
-  <div class="special-strip">
-    <div class="sf-chip" onclick="toggleSF('halal',this)">🌙 Halal</div>
-    <div class="sf-chip" onclick="toggleSF('vegan',this)">🌿 Vegan/Veg</div>
-    <div class="sf-chip" onclick="toggleSF('english_menu',this)">🇺🇸 English Menu</div>
-    <div class="sf-chip" onclick="toggleSF('card_ok',this)">💳 Card OK</div>
-    <div class="sf-chip" onclick="toggleSF('solo_ok',this)">🙋 Solo Friendly</div>
-    <div class="sf-chip" onclick="toggleSF('no_reservation',this)">⚡ Walk-in OK</div>
+  <div class="catstrip">
+    <span class="catlabel">Filter:</span>
+    <div class="cchip active" onclick="filterCat('all',this)">&#10024; All</div>
+    <div class="cchip" onclick="filterCat('cooking_class',this)">&#127859; Cooking Class</div>
+    <div class="cchip" onclick="filterCat('market_tour',this)">&#128031; Market Tour</div>
+    <div class="cchip" onclick="filterCat('sake_tasting',this)">&#127862; Sake &amp; Drinks</div>
+    <div class="cchip" onclick="filterCat('tea_ceremony',this)">&#127861; Tea Ceremony</div>
+    <div class="cchip" onclick="filterCat('craft',this)">&#127998; Traditional Craft</div>
+    <div class="cchip" onclick="filterCat('festival',this)">&#127800; Festival &amp; Events</div>
+    <div class="cchip" onclick="filterCat('farm',this)">&#127806; Farm &amp; Nature</div>
   </div>
-
-  <!-- Community / reviewer origin filter -->
-  <div class="community-strip">
-    <div class="cf-label">Reviews from:</div>
-    <div class="cf-chip" onclick="toggleCF('all',this)">🌍 Everyone</div>
-    <div class="cf-chip" onclick="toggleCF('en',this)">🇺🇸🇬🇧 English speakers</div>
-    <div class="cf-chip" onclick="toggleCF('zh',this)">🇨🇳🇹🇼 Chinese speakers</div>
-    <div class="cf-chip" onclick="toggleCF('ko',this)">🇰🇷 Korean speakers</div>
+  <div class="container">
+    <div class="gridhead">
+      <div class="gridtitle">&#10024; Experiences in Japan</div>
+      <div class="gridcount" id="exp-count-wrap"></div>
+    </div>
+    <div class="expgrid" id="exp-grid"></div>
   </div>
 </div>
 
-<!-- MAIN -->
-<div class="container">
-  <div class="two-col">
-    <div>
-      <div class="sec-head">
-        <div class="sec-title" id="sec-title">🏆 Top Rated</div>
-        <div class="sec-count" id="sec-count"></div>
-      </div>
-      <div class="card-list" id="cardList"></div>
-    </div>
-    <div>
-      <!-- MAP -->
-      <div class="map-panel">
-        <div class="map-view" style="background:#0c1810">
-          <svg class="map-svg-wrap" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="bgG" cx="50%" cy="55%" r="65%"><stop offset="0%" stop-color="#17261a"/><stop offset="100%" stop-color="#09110b"/></radialGradient>
-              <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-              <filter id="sg"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            </defs>
-            <rect width="400" height="400" fill="url(#bgG)"/>
-            <path fill="#0e1f16" d="M285,225 C305,240 330,268 335,295 C340,320 325,345 310,355 L400,355 L400,225Z"/>
-            <text x="332" y="315" fill="rgba(80,160,110,0.22)" font-size="8.5" font-family="sans-serif" font-style="italic" transform="rotate(-30,332,315)">Tokyo Bay</text>
-            <line x1="0" y1="168" x2="400" y2="168" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-            <line x1="190" y1="0" x2="190" y2="400" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-            <path fill="none" stroke="#e07030" stroke-width="2" stroke-opacity="0.4" stroke-dasharray="5,3" d="M80,160 C160,163 230,170 272,200"/>
-            <path fill="none" stroke="#c8b020" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="4,3" d="M104,238 C172,210 250,192 272,198"/>
-            <path fill="none" stroke="#2d7a42" stroke-width="9" stroke-opacity="0.25" stroke-linecap="round" stroke-linejoin="round" d="M152,76 C182,69 218,71 248,80 C268,92 272,100 277,114 C276,136 275,158 272,200 C263,226 248,246 237,258 C217,278 205,295 170,310 C147,304 124,292 114,270 C104,246 92,202 91,188 C91,175 80,160 73,142 C75,122 104,96 122,84 C134,77 142,75 152,76Z"/>
-            <path fill="none" stroke="#5ecb7c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)" d="M152,76 C182,69 218,71 248,80 C268,92 272,100 277,114 C276,136 275,158 272,200 C263,226 248,246 237,258 C217,278 205,295 170,310 C147,304 124,292 114,270 C104,246 92,202 91,188 C91,175 80,160 73,142 C75,122 104,96 122,84 C134,77 142,75 152,76Z"/>
-            <circle cx="152" cy="76" r="5" fill="#fff" opacity="0.95" filter="url(#sg)"/>
-            <circle cx="80" cy="160" r="5" fill="#fff" opacity="0.95" filter="url(#sg)"/>
-            <circle cx="92" cy="202" r="3.5" fill="#fff" opacity="0.75"/>
-            <circle cx="104" cy="238" r="5" fill="#fff" opacity="0.95" filter="url(#sg)"/>
-            <circle cx="170" cy="310" r="3" fill="#fff" opacity="0.65"/>
-            <circle cx="205" cy="295" r="5" fill="#fff" opacity="0.95" filter="url(#sg)"/>
-            <circle cx="250" cy="240" r="3" fill="#fff" opacity="0.65"/>
-            <circle cx="272" cy="200" r="5" fill="#fff" opacity="0.95" filter="url(#sg)"/>
-            <circle cx="275" cy="158" r="3.5" fill="#fff" opacity="0.75"/>
-            <circle cx="272" cy="100" r="5" fill="#fff" opacity="0.95" filter="url(#sg)"/>
-            <text x="152" y="54" text-anchor="middle" fill="#f5ce60" font-size="11" font-weight="bold" font-family="'Cormorant Garamond',serif" letter-spacing="0.8">IKEBUKURO</text>
-            <text x="152" y="64" text-anchor="middle" fill="rgba(255,255,255,0.28)" font-size="7.5" font-family="sans-serif">池袋</text>
-            <text x="46" y="157" text-anchor="middle" fill="#f5ce60" font-size="11" font-weight="bold" font-family="'Cormorant Garamond',serif" letter-spacing="0.8">SHINJUKU</text>
-            <text x="46" y="167" text-anchor="middle" fill="rgba(255,255,255,0.28)" font-size="7.5" font-family="sans-serif">新宿</text>
-            <text x="58" y="196" text-anchor="middle" fill="#e8c260" font-size="9" font-weight="bold" font-family="'Cormorant Garamond',serif">HARAJUKU</text>
-            <text x="58" y="206" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="7" font-family="sans-serif">原宿</text>
-            <text x="68" y="241" text-anchor="middle" fill="#f5ce60" font-size="11" font-weight="bold" font-family="'Cormorant Garamond',serif" letter-spacing="0.8">SHIBUYA</text>
-            <text x="68" y="251" text-anchor="middle" fill="rgba(255,255,255,0.28)" font-size="7.5" font-family="sans-serif">渋谷</text>
-            <text x="220" y="312" text-anchor="middle" fill="#e8c260" font-size="10" font-weight="bold" font-family="'Cormorant Garamond',serif">SHINAGAWA</text>
-            <text x="220" y="322" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="7" font-family="sans-serif">品川</text>
-            <text x="172" y="250" text-anchor="middle" fill="#90d878" font-size="10" font-weight="bold" font-family="'Cormorant Garamond',serif">ROPPONGI</text>
-            <text x="172" y="260" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="7" font-family="sans-serif">六本木</text>
-            <text x="258" y="253" text-anchor="middle" fill="#90d878" font-size="10" font-weight="bold" font-family="'Cormorant Garamond',serif">GINZA</text>
-            <text x="258" y="263" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="7" font-family="sans-serif">銀座</text>
-            <text x="295" y="196" text-anchor="middle" fill="#f5ce60" font-size="9.5" font-weight="bold" font-family="'Cormorant Garamond',serif">TOKYO STN</text>
-            <text x="295" y="206" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="7" font-family="sans-serif">東京駅</text>
-            <text x="302" y="150" text-anchor="middle" fill="#88b8e8" font-size="10" font-weight="bold" font-family="'Cormorant Garamond',serif">AKIHABARA</text>
-            <text x="302" y="160" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="7" font-family="sans-serif">秋葉原</text>
-            <text x="298" y="92" text-anchor="middle" fill="#f5ce60" font-size="11" font-weight="bold" font-family="'Cormorant Garamond',serif">UENO</text>
-            <text x="298" y="102" text-anchor="middle" fill="rgba(255,255,255,0.28)" font-size="7.5" font-family="sans-serif">上野</text>
-            <text x="345" y="102" text-anchor="middle" fill="#e8c260" font-size="10" font-weight="bold" font-family="'Cormorant Garamond',serif">ASAKUSA</text>
-            <text x="345" y="112" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="7" font-family="sans-serif">浅草</text>
-            <line x1="284" y1="98" x2="322" y2="104" stroke="rgba(255,200,80,0.22)" stroke-width="1.2" stroke-dasharray="3,2"/>
-            <rect x="10" y="372" width="140" height="20" rx="3" fill="rgba(0,0,0,0.4)"/>
-            <line x1="16" y1="382" x2="34" y2="382" stroke="#5ecb7c" stroke-width="2.5"/>
-            <circle cx="16" cy="382" r="2.2" fill="#fff" opacity="0.8"/>
-            <circle cx="34" cy="382" r="2.2" fill="#fff" opacity="0.8"/>
-            <text x="40" y="386" fill="rgba(255,255,255,0.55)" font-size="8" font-family="sans-serif">Yamanote Line</text>
-          </svg>
-          <div class="map-pins" id="mapPins"></div>
-          <div class="map-placeholder-msg">📍 Click a pin to explore Tokyo</div>
+<div class="tabpage" id="tab-ai">
+  <div class="aipage">
+    <div class="aieyebrow">&#10022; AI Experience Matcher</div>
+    <div class="aititle">Tell us what you want.<br>We find your <em>perfect</em> experience.</div>
+    <div class="aisub">Answer a few questions and our AI recommends the best experiences for your trip based on your interests, budget, group size, and schedule.</div>
+    <div class="aiform">
+      <div class="aiformgrid">
+        <div><label class="ailabel">Travel Date</label><input class="aiinput" type="date" id="ai-date"></div>
+        <div><label class="ailabel">Group Size</label>
+          <select class="aiselect" id="ai-group">
+            <option value="">Select...</option>
+            <option value="solo">Solo (1 person)</option>
+            <option value="couple">Couple (2)</option>
+            <option value="small">Small group (3-5)</option>
+            <option value="large">Large group (6+)</option>
+          </select>
         </div>
-        <div class="map-info">
-          <h3 id="map-card-name">Tokyo Food Map</h3>
-          <p id="map-card-sub">Tap any pin to discover a restaurant</p>
+        <div><label class="ailabel">Budget per person</label>
+          <select class="aiselect" id="ai-budget">
+            <option value="">Select...</option>
+            <option value="under5">Under 5000 yen</option>
+            <option value="5-10">5000 to 10000 yen</option>
+            <option value="10-20">10000 to 20000 yen</option>
+            <option value="20plus">20000 yen or more</option>
+          </select>
+        </div>
+        <div><label class="ailabel">Duration</label>
+          <select class="aiselect" id="ai-duration">
+            <option value="">Select...</option>
+            <option value="short">1 to 2 hours</option>
+            <option value="half">Half day 3-4h</option>
+            <option value="full">Full day</option>
+          </select>
         </div>
       </div>
-      <!-- RANKING -->
-      <div style="margin-top:16px">
-        <div class="rank-card">
-          <div class="rank-card-header"><span style="font-size:15px">🏆</span><h3 id="rank-title">Top 5 This Month</h3></div>
-          <div class="rank-list" id="rankList"></div>
-        </div>
+      <div><label class="ailabel">What are you looking for?</label>
+        <textarea class="aitextarea" id="ai-interest" placeholder="e.g. I love Japanese food culture and want something hands-on. My kids are 8 and 10. We want something locals actually do..."></textarea>
+      </div>
+      <button class="btnai" onclick="runAiMatch()">&#10022; Find My Perfect Experience</button>
+      <div class="airesults" id="ai-results">
+        <div class="airtitle">&#10022; AI Recommendations</div>
+        <div class="airtext" id="ai-results-text"></div>
+        <div class="aircards" id="ai-rec-grid"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- DETAIL MODAL -->
-<div class="overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
-  <div class="modal">
-    <div class="modal-hero">
-      <span id="modalEmoji" style="position:relative;z-index:1"></span>
-      <img id="modalPhoto" class="modal-hero-photo" style="display:none" src="" alt="">
-      <div class="modal-hero-overlay"></div>
-      <button class="modal-close" onclick="closeDetail()">✕</button>
-      <div class="modal-hero-info">
-        <h2 id="modalName"></h2>
-        <p id="modalMeta"></p>
+<div class="tabpage" id="tab-chat">
+  <div class="chatlayout">
+    <div class="chatsidebar">
+      <div class="chatsidehd">Messages (2)</div>
+      <div class="chatitem active" onclick="selectChat(0)">
+        <div class="chatav">&#127859;</div>
+        <div style="flex:1;min-width:0">
+          <div class="chatinfotop"><span class="chatname">Tsukiji Cooking Studio</span><span class="chattime">10:42</span></div>
+          <div class="chatprev">We look forward to seeing you tomorrow!</div>
+        </div>
+        <div class="chatunread"></div>
       </div>
-    </div>
-    <div class="modal-tabs">
-      <button class="m-tab active" onclick="switchTab('reviews',this)" id="tab-reviews">Reviews</button>
-      <button class="m-tab" onclick="switchTab('write',this)" id="tab-write">Write Review</button>
-      <button class="m-tab" onclick="switchTab('info',this)" id="tab-info">Info & Map</button>
-      <button class="m-tab" onclick="switchTab('reserve',this)" id="tab-reserve">📅 Reserve</button>
-    </div>
-    <div class="modal-body">
-      <div class="tab-panel active" id="panel-reviews">
-        <!-- Community filter inside reviews -->
-        <div class="review-filter-row" id="reviewFilterRow"></div>
-        <div class="review-feed" id="reviewFeed"></div>
-        <div style="text-align:center;padding:6px 0">
-          <button class="nav-btn nav-amber" onclick="switchTab('write',document.getElementById('tab-write'))" id="write-cta">+ Write a Review</button>
+      <div class="chatitem" onclick="selectChat(1)">
+        <div class="chatav">&#127862;</div>
+        <div style="flex:1;min-width:0">
+          <div class="chatinfotop"><span class="chatname">Fushimi Sake Tour</span><span class="chattime">Yesterday</span></div>
+          <div class="chatprev">Your booking is confirmed for March 28</div>
         </div>
       </div>
-      <div class="tab-panel" id="panel-write">
-        <div class="write-section" style="border-top:none;padding-top:0">
-          <div class="write-title" id="write-title">Share Your Experience</div>
-          <div class="form-2col">
-            <div><label class="fl" id="lbl-name">Your Name</label><input class="fi" id="writerName" placeholder="e.g. Sarah"></div>
-            <div><label class="fl" id="lbl-country">Country 🌍</label><input class="fi" id="writerCountry" placeholder="e.g. 🇺🇸 USA"></div>
-          </div>
-          <div class="form-1col">
-            <label class="fl" id="lbl-rating">Rating</label>
-            <div class="star-pick">
-              <button class="sp-star" onclick="setStar(1)">★</button>
-              <button class="sp-star" onclick="setStar(2)">★</button>
-              <button class="sp-star" onclick="setStar(3)">★</button>
-              <button class="sp-star" onclick="setStar(4)">★</button>
-              <button class="sp-star" onclick="setStar(5)">★</button>
-            </div>
-          </div>
-          <div class="form-1col">
-            <label class="fl" id="lbl-review">Your Review (any language welcome)</label>
-            <textarea class="fta" id="reviewText" placeholder="Tell the world — the taste, the vibe, the moment…"></textarea>
-          </div>
-          <div class="form-1col">
-            <label class="fl" id="lbl-badges">What's available here?</label>
-            <div class="badge-toggles" id="badgeToggles">
-              <div class="badge-toggle" data-badge="english_menu" onclick="toggleBadge(this)">🇺🇸 English Menu</div>
-              <div class="badge-toggle" data-badge="card_ok" onclick="toggleBadge(this)">💳 Card OK</div>
-              <div class="badge-toggle" data-badge="halal" onclick="toggleBadge(this)">🌙 Halal</div>
-              <div class="badge-toggle" data-badge="vegan" onclick="toggleBadge(this)">🌿 Vegan/Veg</div>
-              <div class="badge-toggle" data-badge="solo_ok" onclick="toggleBadge(this)">🙋 Solo OK</div>
-              <div class="badge-toggle" data-badge="no_reservation" onclick="toggleBadge(this)">⚡ Walk-in OK</div>
-            </div>
-          </div>
-          <div class="form-1col">
-            <label class="fl" id="lbl-photos">Photos (optional)</label>
-            <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
-              <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(event)">
-              <span>📸</span><p id="photo-hint">Click to add food photos</p>
-            </div>
-            <div class="photo-preview" id="photoPreview"></div>
-          </div>
-          <div class="submit-row">
-            <button class="btn-cancel" onclick="switchTab('reviews',document.getElementById('tab-reviews'))" id="btn-cancel">Cancel</button>
-            <button class="btn-submit" onclick="submitReview()" id="btn-post">Post Review</button>
-          </div>
+    </div>
+    <div class="chatmain">
+      <div class="chattop">
+        <div class="chattopav" id="chat-host-av">&#127859;</div>
+        <div>
+          <div class="chattopname" id="chat-host-name">Tsukiji Cooking Studio</div>
+          <div class="chattopstatus">&#9679; Online &middot; replies in ~30 min</div>
+        </div>
+        <div class="chattopactions">
+          <button class="btnarrive" onclick="markArrived()">&#10003; Confirm Arrival</button>
+          <button class="btncancelsmall" onclick="showCancelPolicy()">Cancel Policy</button>
         </div>
       </div>
-      <div class="tab-panel" id="panel-info">
-        <div id="infoTabContent" style="padding:6px 0"></div>
+      <div class="chatmsgs" id="chat-messages">
+        <div class="msgsys">&#128197; <strong>Booking confirmed:</strong> Ramen Making &middot; March 27 &middot; 10:00 AM &middot; 2 guests &middot; Deposit &#165;2,000 paid</div>
+        <div class="msg recv"><div class="msgav">&#127859;</div><div><div class="msgbub">Hello! Thank you for booking. We are excited to welcome you for the ramen class!</div><div class="msgt">10:30</div></div></div>
+        <div class="msg recv"><div class="msgav">&#127859;</div><div><div class="msgbub">Please wear comfortable clothes. We provide aprons. Any dietary restrictions?</div><div class="msgt">10:31</div></div></div>
+        <div class="msg sent"><div class="msgav">&#128100;</div><div><div class="msgbub">Thank you! No dietary restrictions. Is there parking nearby?</div><div class="msgt">10:38</div></div></div>
+        <div class="msg recv"><div class="msgav">&#127859;</div><div><div class="msgbub">Nearest station is Tsukiji-shijo (2 min walk). Coin parking 5 min away. See you tomorrow!</div><div class="msgt">10:42</div></div></div>
+        <div class="msgsys">&#128276; <strong>Reminder:</strong> Your experience is tomorrow at 10:00 AM. Please arrive 5 minutes early.</div>
       </div>
-      <div class="tab-panel" id="panel-reserve">
-        <div id="reserveTabContent"></div>
+      <div class="chatbar">
+        <textarea class="chatinput" id="chat-input" rows="1" placeholder="Type a message..."></textarea>
+        <button class="btnsend" onclick="sendChatMsg()">Send</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- PLANNER PANEL -->
-<div class="planner-overlay" id="plannerOverlay" onclick="if(event.target===this)closePlanner()">
-  <div class="planner-panel">
-    <div class="planner-header">
-      <h2>🗓 My Food Plan</h2>
-      <button class="modal-close" style="position:static;background:rgba(255,255,255,.1)" onclick="closePlanner()">✕</button>
-    </div>
-    <div class="planner-body" id="plannerBody"></div>
-  </div>
+<div class="overlay" id="bookingOverlay" onclick="if(event.target===this)closeBooking()">
+  <div class="modal"><button class="mclose" onclick="closeBooking()">&#10005;</button><div id="booking-content"></div></div>
 </div>
-
-<!-- ADD RESTAURANT MODAL -->
-<div class="overlay" id="addOverlay" onclick="if(event.target===this)closeAdd()">
-  <div class="modal" style="max-width:540px">
-    <div class="modal-hero" style="height:90px;font-size:32px;background:var(--void)">
-      <div class="modal-hero-overlay"></div>
-      <button class="modal-close" onclick="closeAdd()">✕</button>
-      <div class="modal-hero-info" style="bottom:12px">
-        <h2 style="font-size:19px" id="add-title">Add a Restaurant</h2>
-        <p id="add-sub">Share a hidden gem 🌏</p>
-      </div>
-    </div>
-    <div class="modal-body">
-      <div class="form-2col">
-        <div><label class="fl" id="add-lbl-name">Restaurant Name</label><div style="display:flex;gap:6px"><input class="fi" id="addName" placeholder="e.g. Ichiran Ramen" style="flex:1"><button id="placesSearchBtn" onclick="fillFromPlaces()" style="padding:8px 11px;background:#2471a3;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer;white-space:nowrap;font-family:inherit;flex-shrink:0;transition:opacity .2s">🔍 Auto-fill</button></div></div>
-        <div><label class="fl" id="add-lbl-city">Neighborhood</label><input class="fi" id="addCity" placeholder="e.g. Shibuya"></div>
-      </div>
-      <div class="form-2col">
-        <div><label class="fl" id="add-lbl-cat">Category</label>
-          <select class="fs" id="addCat">
-            <option value="ramen">🍜 Ramen</option><option value="sushi">🍣 Sushi</option>
-            <option value="izakaya">🍶 Izakaya</option><option value="yakiniku">🥩 Yakiniku</option>
-            <option value="tempura">🍤 Tempura</option><option value="udon">🍝 Udon/Soba</option>
-            <option value="street">🏮 Street Food</option><option value="cafe">☕ Café</option>
-          </select></div>
-        <div><label class="fl" id="add-lbl-price">Price Range</label>
-          <select class="fs" id="addPrice">
-            <option value="¥">¥ Budget</option><option value="¥¥">¥¥ Moderate</option>
-            <option value="¥¥¥">¥¥¥ Upscale</option><option value="¥¥¥¥">¥¥¥¥ Luxury</option>
-          </select></div>
-      </div>
-      <div class="form-2col">
-        <div><label class="fl" id="add-lbl-area">Area</label>
-          <select class="fs" id="addArea">
-            <option value="shinjuku">Shinjuku</option><option value="shibuya">Shibuya</option>
-            <option value="ginza">Ginza</option><option value="asakusa">Asakusa</option>
-            <option value="roppongi">Roppongi</option><option value="akihabara">Akihabara</option>
-            <option value="ikebukuro">Ikebukuro</option><option value="other">Other</option>
-          </select></div>
-        <div><label class="fl" id="add-lbl-tags">Tags</label><input class="fi" id="addTags" placeholder="Must Try, Cash Only"></div>
-      </div>
-      <div class="form-1col">
-        <label class="fl" id="add-lbl-desc">Tips / Description</label>
-        <textarea class="fta" id="addDesc" style="min-height:60px" placeholder="What makes this place special?"></textarea>
-      </div>
-      <div class="submit-row">
-        <button class="btn-cancel" onclick="closeAdd()" id="add-cancel">Cancel</button>
-        <button class="btn-submit" onclick="addRestaurant()" id="add-submit">Add Restaurant 🎌</button>
-      </div>
+<div class="overlay" id="hostOverlay" onclick="if(event.target===this)closeHostModal()">
+  <div class="modal"><button class="mclose" onclick="closeHostModal()">&#10005;</button>
+    <div class="hform">
+      <h2>Host an Experience</h2>
+      <p>Share your passion with travelers from around the world. You keep 80% of every booking.</p>
+      <input type="text" id="host-name" placeholder="Your name">
+      <input type="email" id="host-email" placeholder="Email address">
+      <input type="text" id="host-exptitle" placeholder="Experience title">
+      <select id="host-cat"><option value="">Select category...</option><option value="cooking_class">Cooking Class</option><option value="market_tour">Market Tour</option><option value="sake_tasting">Sake and Drinks</option><option value="tea_ceremony">Tea Ceremony</option><option value="craft">Traditional Craft</option><option value="festival">Festival and Events</option><option value="farm">Farm and Nature</option></select>
+      <textarea id="host-desc" placeholder="Describe your experience..."></textarea>
+      <button class="btnconfirm" onclick="submitHost()">Submit Application</button>
     </div>
   </div>
-</div>
-
-<!-- AUTH MODAL -->
-<div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuth()">
-  <div class="auth-modal">
-    <div class="auth-header">
-      <div class="auth-kanji">食</div>
-      <div class="auth-title" id="authTitle">Welcome to TABERU</div>
-      <div class="auth-subtitle" id="authSubtitle">Sign in to save your food plan and post reviews</div>
-    </div>
-    <div class="auth-body">
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Log In</button>
-        <button class="auth-tab" id="authTabRegister" onclick="switchAuthTab('register')">Sign Up</button>
-      </div>
-      <div class="auth-error" id="authError"></div>
-      <div class="auth-success" id="authSuccess"></div>
-      <!-- LOGIN -->
-      <div id="loginForm">
-        <div class="auth-field">
-          <label>Email</label>
-          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" onkeydown="if(event.key==='Enter')handleLogin()">
-        </div>
-        <div class="auth-field">
-          <label>Password</label>
-          <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()">
-        </div>
-        <button class="auth-submit" onclick="handleLogin()" id="loginBtn">Log In →</button>
-      </div>
-      <!-- REGISTER -->
-      <div id="registerForm" style="display:none">
-        <div class="auth-field">
-          <label>Display Name</label>
-          <input type="text" id="regName" placeholder="e.g. Sarah from NYC" autocomplete="name">
-        </div>
-        <div class="auth-field">
-          <label>Country 🌍</label>
-          <input type="text" id="regCountry" placeholder="e.g. 🇺🇸 USA">
-        </div>
-        <div class="auth-field">
-          <label>Email</label>
-          <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div class="auth-field">
-          <label>Password</label>
-          <input type="password" id="regPassword" placeholder="At least 8 characters" autocomplete="new-password">
-          <div class="field-hint">パスワードはデバイス内でハッシュ化されます。外部サーバーには送信されません。</div>
-        </div>
-        <div class="auth-field">
-          <label>Confirm Password</label>
-          <input type="password" id="regPasswordConfirm" placeholder="Repeat password" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleRegister()">
-        </div>
-        <button class="auth-submit" onclick="handleRegister()" id="registerBtn">Create Account →</button>
-      </div>
-      <div class="auth-divider"><span>or</span></div>
-      <div class="auth-switch"><a onclick="closeAuth()">Browse without signing in →</a></div>
-    </div>
-  </div>
-</div>
-
-<div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
-  <button class="lb-close" onclick="document.getElementById('lightbox').classList.remove('open')">✕</button>
-  <img id="lbImg" src="" alt="">
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════
-// SUPABASE CONFIG
-// Replace YOUR_PROJECT_URL and YOUR_ANON_KEY after creating your Supabase project
-// supabase.com → New Project → Settings → API
-// ═══════════════════════════════════════
-const SUPABASE_URL  = 'https://wdhfxidkoytpoolriarm.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkaGZ4aWRrb3l0cG9vbHJpYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNDYxNzgsImV4cCI6MjA4OTcyMjE3OH0.lyNCxJ2a6mNznBq80wFGzxJZ8L5HjvTSgUecTvnbf5k';
-const STRIPE_KEY    = 'YOUR_STRIPE_PUBLISHABLE_KEY';
+var SUPABASE_URL = 'https://wdhfxidkoytpoolriarm.supabase.co';
+var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkaGZ4aWRrb3l0cG9vbHJpYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNDYxNzgsImV4cCI6MjA4OTcyMjE3OH0.lyNCxJ2a6mNznBq80wFGzxJZ8L5HjvTSgUecTvnbf5k';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-let sb;
-try {
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-} catch(e) {
-  console.warn('Supabase SDK not loaded yet, using fallback');
-  // Proper chainable dummy so nothing crashes when SDK is slow/unavailable
-  const _pr = (v={data:null,error:null}) => Promise.resolve(v);
-  const _chain = () => {
-    const empty = {data:[],error:null};
-    const emptyFn = () => Promise.resolve(empty);
-    const c = {
-      select:()=>c, eq:()=>c, neq:()=>c, gte:()=>c, lte:()=>c, gt:()=>c, lt:()=>c,
-      order:()=>c, limit:emptyFn, single:()=>_pr({data:null,error:'no_sdk'}),
-      ilike:()=>c, in:()=>c, contains:()=>c, is:()=>c, not:()=>c, filter:()=>c,
-      insert:()=>c, update:()=>c, upsert:()=>c, delete:()=>c,
-      ascending:emptyFn,
-      then:(fn)=>_pr(empty).then(fn),
-    };
-    // Make the chain itself awaitable
-    c[Symbol.iterator] = undefined;
-    Object.defineProperty(c,'then',{value:(fn)=>Promise.resolve(empty).then(fn)});
-    return c;
-  };
-  sb = {
-    from: () => _chain(),
-    auth: {
-      getSession: () => _pr({data:{session:null}}),
-      signInWithPassword: () => _pr({error:{message:'SDK not loaded'}}),
-      signUp: () => _pr({error:{message:'SDK not loaded'}}),
-      signOut: () => _pr({}),
-      onAuthStateChange: () => ({data:{subscription:{unsubscribe:()=>{}}}})
-    },
-    rpc: () => _pr({data:null,error:null})
-  };
-}
-let stripe = null; // Stripe disabled until STRIPE_KEY is configured
-
-// ═══════════════════════════════════════
-// DATA — local seed (used when Supabase not connected)
-// ═══════════════════════════════════════
-const DB = [
-  {id:1,name:"Ichiran Shinjuku",city:"Shinjuku, Tokyo",area:"shinjuku",category:"ramen",emoji:"🍜",price:"¥",rating:4.3,reviewCount:12840,
-   tags:["Tonkotsu","Solo Booths","Open 24h"],
-   tips:"Each seat has a private booth and a multilingual tablet. Customize broth richness, spice level and noodle texture. Perfect for solo travelers.",
-   phone:"+81-3-5285-1818",website:"https://en.ichiran.com",hours:"Open 24 hours",
-   address_ja:"東京都新宿区西新宿7-1-1 タイムズスクエアB1F",address_en:"Times Square Bldg B1F, 7-1-1 Nishi-Shinjuku, Shinjuku-ku, Tokyo",gmap_query:"一蘭 新宿店",
-   trust:{english_menu:true,card_ok:true,halal:false,vegan:false,solo_ok:true,no_reservation:true},
-   reservation_fee:0,
-   mapX:20,mapY:40,photos:["https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80"],
-   reviews:[
-     {name:"Marco",country:"🇮🇹 Italy",lang:"en",stars:5,text:"The solo booth is genius! The broth is incredibly rich and complex. Private booth means I could slurp without shame. Multilingual tablet made ordering painless.",date:"Mar 2026",photos:[],aiData:null},
-     {name:"Sarah",country:"🇺🇸 USA",lang:"en",stars:4,text:"The solo booth concept is genius for introverts. Rich tonkotsu, springy noodles. Great value for Tokyo.",date:"Feb 2026",photos:[],aiData:null},
-     {name:"이민지",country:"🇰🇷 Korea",lang:"ko",stars:5,text:"솔로 부스 개념이 너무 좋아요! 혼자 먹어도 전혀 어색하지 않고 태블릿으로 주문하니 편했어요. 국물이 진하고 면이 쫄깃해서 정말 맛있었습니다!",date:"Jan 2026",photos:[],aiData:null}
-   ]},
-  {id:2,name:"Sukiyabashi Jiro Honten",city:"Ginza, Tokyo",area:"ginza",category:"sushi",emoji:"🍣",price:"¥¥¥¥",rating:4.8,reviewCount:2310,
-   tags:["3 Michelin Stars","Omakase","Legend"],
-   tips:"Book months ahead via hotel concierge. Lunch omakase from ¥40,000. Only 10 counter seats. No phones during service.",
-   phone:"+81-3-3535-3600",website:"https://www.sushi-jiro.jp",hours:"Mon–Sat Lunch & Dinner",
-   address_ja:"東京都中央区銀座4-2-15 塚本素山ビルB1F",address_en:"Tsukamoto Sozanyama Bldg B1F, 4-2-15 Ginza, Chuo-ku, Tokyo",gmap_query:"すきやばし次郎 本店 銀座",
-   trust:{english_menu:false,card_ok:false,halal:false,vegan:false,solo_ok:true,no_reservation:false},
-   reservation_fee:500,
-   mapX:63,mapY:57,photos:["https://images.unsplash.com/photo-1553621042-f6e147245754?w=400&q=80"],
-   reviews:[
-     {name:"David",country:"🇺🇸 USA",lang:"en",stars:5,text:"The most sublime 20 minutes of eating in my life. Jiro-san himself placed each piece. The tuna trilogy alone was worth the flight.",date:"Jan 2026",photos:[],aiData:null},
-     {name:"李明",country:"🇨🇳 China",lang:"zh",stars:5,text:"寿司之神！每一貫都是極致的工藝。鮪魚、海膽、鯛魚的順序設計得如此精妙，讓人震撼。人生必吃一次。",date:"Dec 2025",photos:[],aiData:null}
-   ]},
-  {id:3,name:"Tempura Kondo",city:"Ginza, Tokyo",area:"ginza",category:"tempura",emoji:"🍤",price:"¥¥¥",rating:4.7,reviewCount:3420,
-   tags:["2 Michelin Stars","Counter Only","Seasonal"],
-   tips:"Sit at the counter to watch Chef Kondo work. The sweet potato tempura is legendary. Lunch sets are far better value than dinner.",
-   phone:"+81-3-5568-0141",website:"",hours:"Tue–Sat Lunch & Dinner",
-   address_ja:"東京都中央区銀座9-7-4 銀座小野ビル5F",address_en:"Ginza Ono Bldg 5F, 9-7-4 Ginza, Chuo-ku, Tokyo",gmap_query:"天麩羅近藤 銀座",
-   trust:{english_menu:false,card_ok:true,halal:false,vegan:false,solo_ok:true,no_reservation:false},
-   reservation_fee:500,
-   mapX:66,mapY:55,photos:["https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=400&q=80"],
-   reviews:[
-     {name:"Sophie",country:"🇫🇷 France",lang:"en",stars:5,text:"La tempura de patate douce est une révélation absolue — légère, dorée, sucrée. Chef Kondo works with incredible precision.",date:"Feb 2026",photos:[],aiData:null},
-     {name:"박지민",country:"🇰🇷 Korea",lang:"ko",stars:5,text:"튀김 명인의 손끝에서 나오는 요리는 차원이 달라요. 새우 튀김의 바삭함과 촉촉함의 균형이 완벽했습니다.",date:"Mar 2026",photos:[],aiData:null}
-   ]},
-  {id:4,name:"Asakusa Imahan",city:"Asakusa, Tokyo",area:"asakusa",category:"izakaya",emoji:"🍶",price:"¥¥¥",rating:4.5,reviewCount:5670,
-   tags:["Sukiyaki","Wagyu","Since 1895"],
-   tips:"Waiter cooks wagyu tableside. Ask for the nami set for best value. Try with raw egg for the full experience.",
-   phone:"+81-3-3841-1114",website:"https://www.asakusaimahan.co.jp",hours:"Daily 11:30–21:30",
-   address_ja:"東京都台東区西浅草3-1-12",address_en:"3-1-12 Nishi-Asakusa, Taito-ku, Tokyo",gmap_query:"浅草今半 本店",
-   trust:{english_menu:true,card_ok:true,halal:false,vegan:false,solo_ok:false,no_reservation:false},
-   reservation_fee:440,
-   mapX:84,mapY:28,photos:["https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80"],
-   reviews:[
-     {name:"Yuki",country:"🇦🇺 Australia",lang:"en",stars:5,text:"Stepping into a 130-year-old sukiyaki restaurant while the city buzzes outside — that contrast is pure Tokyo magic. The wagyu was meltingly tender.",date:"Jan 2026",photos:[],aiData:null},
-     {name:"王芳",country:"🇨🇳 China",lang:"zh",stars:5,text:"浅草今半的寿喜烧是我在东京吃过最好吃的！服务员在桌边亲自下锅，和牛的香气令人陶醉。百年老店，名不虚传！",date:"Feb 2026",photos:[],aiData:null}
-   ]},
-  {id:5,name:"Yabu Soba Kanda",city:"Kanda, Tokyo",area:"akihabara",category:"udon",emoji:"🍝",price:"¥",rating:4.4,reviewCount:8920,
-   tags:["Handmade Soba","Since 1880","Cash Only"],
-   tips:"Order zaru soba cold with dipping sauce. Arrive at opening 11:30 to avoid queues. Cash only.",
-   phone:"+81-3-3251-0287",website:"",hours:"Mon, Wed–Sun 11:30–19:00",
-   address_ja:"東京都千代田区神田淡路町2-10",address_en:"2-10 Kanda Awajicho, Chiyoda-ku, Tokyo",gmap_query:"藪蕎麦 神田",
-   trust:{english_menu:false,card_ok:false,halal:false,vegan:true,solo_ok:true,no_reservation:true},
-   reservation_fee:0,
-   mapX:74,mapY:38,photos:["https://images.unsplash.com/photo-1623341214825-9f4f963727da?w=400&q=80"],
-   reviews:[
-     {name:"김민준",country:"🇰🇷 Korea",lang:"ko",stars:5,text:"140년 전통의 소바집! 면발이 탄력있고 쯔유가 깊고 진해서 감탄했어요. 30분 줄을 서도 전혀 아깝지 않은 맛입니다.",date:"Dec 2025",photos:[],aiData:null},
-     {name:"James",country:"🇺🇸 USA",lang:"en",stars:4,text:"Handmade soba at its purest — nutty, chewy, delicate. The dipping broth is deeply savory. Old-school Tokyo vibes.",date:"Nov 2025",photos:[],aiData:null}
-   ]},
-  {id:6,name:"Gyukatsu Motomura Shibuya",city:"Shibuya, Tokyo",area:"shibuya",category:"yakiniku",emoji:"🥩",price:"¥¥",rating:4.5,reviewCount:18300,
-   tags:["Gyukatsu","Cook-Your-Own","Budget Wagyu"],
-   tips:"Each table has a small grill. Cook rare beef to preferred doneness. The ¥1,500 set is incredible value.",
-   phone:"+81-3-3461-4129",website:"https://gyukatsu-motomura.com",hours:"Daily 11:00–22:00",
-   address_ja:"東京都渋谷区渋谷3-18-10 矢沢ビル2F",address_en:"Yazawa Bldg 2F, 3-18-10 Shibuya, Shibuya-ku, Tokyo",gmap_query:"牛かつもと村 渋谷店",
-   trust:{english_menu:true,card_ok:true,halal:false,vegan:false,solo_ok:true,no_reservation:true},
-   reservation_fee:0,
-   mapX:25,mapY:60,photos:["https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=80"],
-   reviews:[
-     {name:"Lena",country:"🇩🇪 Germany",lang:"en",stars:5,text:"Wagyu that you grill yourself at the table — brilliant idea! The meat is tender and juicy, and incredibly affordable for Tokyo.",date:"Nov 2025",photos:[],aiData:null},
-     {name:"陈思远",country:"🇨🇳 China",lang:"zh",stars:5,text:"涩谷牛かつ元村！自己在小炉子上烤牛排，外脆里嫩，¥1500就能吃到这个水准，真的太划算了。",date:"Jan 2026",photos:[],aiData:null}
-   ]},
-  {id:7,name:"Ramen Nagi Ikebukuro",city:"Ikebukuro, Tokyo",area:"ikebukuro",category:"ramen",emoji:"🍜",price:"¥",rating:4.4,reviewCount:9870,
-   tags:["Niboshi Ramen","Sardine Broth","Late Night"],
-   tips:"Nagi's signature is a bold niboshi (dried sardine) broth. Order the Special for all toppings. Open until 3am on weekends.",
-   phone:"+81-3-3986-0003",website:"https://www.ramennagi.com",hours:"Daily 11:00–03:00",
-   address_ja:"東京都豊島区南池袋1-17-1 アルパB2F",address_en:"Alpa B2F, 1-17-1 Minami-Ikebukuro, Toshima-ku, Tokyo",gmap_query:"ラーメン凪 池袋西口店",
-   trust:{english_menu:false,card_ok:true,halal:false,vegan:false,solo_ok:true,no_reservation:true},
-   reservation_fee:0,
-   mapX:37,mapY:19,photos:["https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80"],
-   reviews:[
-     {name:"Emma",country:"🇬🇧 UK",lang:"en",stars:4,text:"That sardine broth is an acquired taste but totally addictive. By the end of the bowl I was scraping the last drops. The soft-boiled egg was perfectly jammy.",date:"Feb 2026",photos:[],aiData:null}
-   ]},
-  {id:8,name:"Gonpachi Roppongi",city:"Roppongi, Tokyo",area:"roppongi",category:"izakaya",emoji:"🍶",price:"¥¥",rating:4.2,reviewCount:21050,
-   tags:["Kill Bill Location","Robatayaki","English Menu"],
-   tips:"Inspired the Kill Bill fight scene. Multi-floor robata grill. All staff speak English. Try the yakitori and yuba tofu.",
-   phone:"+81-3-5771-0170",website:"https://www.gonpachi.jp",hours:"Daily 11:30–24:00",
-   address_ja:"東京都港区西麻布1-13-11",address_en:"1-13-11 Nishi-Azabu, Minato-ku, Tokyo",gmap_query:"権八 西麻布",
-   trust:{english_menu:true,card_ok:true,halal:false,vegan:false,solo_ok:false,no_reservation:true},
-   reservation_fee:440,
-   mapX:45,mapY:64,photos:["https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=400&q=80"],
-   reviews:[
-     {name:"Miguel",country:"🇲🇽 Mexico",lang:"en",stars:4,text:"The Kill Bill restaurant! The atmosphere is incredible — dark wood, lanterns, multiple floors. The yakitori was excellent.",date:"Mar 2026",photos:[],aiData:null},
-     {name:"박서연",country:"🇰🇷 Korea",lang:"ko",stars:4,text:"킬빌 배경으로 유명한 곤파치! 분위기가 압도적이에요. 직원들이 영어를 잘 해서 편리하고, 꼬치구이도 맛있었어요.",date:"Jan 2026",photos:[],aiData:null}
-   ]},
-  {id:9,name:"Kawaii Monster Cafe",city:"Harajuku, Tokyo",area:"shibuya",category:"cafe",emoji:"☕",price:"¥¥",rating:4.1,reviewCount:14500,
-   tags:["Instagrammable","Harajuku Culture","Colorful"],
-   tips:"Tokyo's most visually wild restaurant. Come for the experience. Live performances twice a day. Table charge ¥500.",
-   phone:"+81-3-5413-6142",website:"https://kawaiimonster.jp",hours:"Daily 11:30–22:30",
-   address_ja:"東京都渋谷区神宮前4-31-10 YM²ビル4F",address_en:"YM² Bldg 4F, 4-31-10 Jingumae, Shibuya-ku, Tokyo",gmap_query:"kawaii monster cafe 原宿",
-   trust:{english_menu:true,card_ok:true,halal:false,vegan:false,solo_ok:true,no_reservation:true},
-   reservation_fee:0,
-   mapX:18,mapY:52,photos:["https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80"],
-   reviews:[
-     {name:"Mei",country:"🇸🇬 Singapore",lang:"en",stars:5,text:"The most gloriously chaotic place I've ever eaten. Every surface is covered in rainbows and sculptures. The parfait was ridiculous in the best way.",date:"Feb 2026",photos:[],aiData:null},
-     {name:"张伟",country:"🇨🇳 China",lang:"zh",stars:4,text:"东京最梦幻的咖啡馆！彩虹色的甜品和超现实的装饰让人目不暇接，视觉体验满分！",date:"Mar 2026",photos:[],aiData:null}
-   ]},
-  {id:10,name:"Tsukiji Outer Market",city:"Tsukiji, Tokyo",area:"ginza",category:"street",emoji:"🏮",price:"¥",rating:4.6,reviewCount:32100,
-   tags:["Street Food","Tamagoyaki","Morning Best"],
-   tips:"Grab a hot tamagoyaki on a stick for ¥500. Best between 5–10am when vendors are most active. Fresh uni don is a must-try.",
-   phone:"",website:"https://www.tsukiji.or.jp",hours:"Most vendors: 5:00–14:00",
-   address_ja:"東京都中央区築地4-16-2",address_en:"4-16-2 Tsukiji, Chuo-ku, Tokyo",gmap_query:"築地場外市場",
-   trust:{english_menu:true,card_ok:false,halal:false,vegan:false,solo_ok:true,no_reservation:true},
-   reservation_fee:0,
-   mapX:72,mapY:61,photos:["https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80"],
-   reviews:[
-     {name:"Anna",country:"🇳🇴 Norway",lang:"en",stars:5,text:"Woke up at 5am to be here for opening and it was absolutely worth it. The tamagoyaki was still sizzling, sweet and savory.",date:"Mar 2026",photos:[],aiData:null},
-     {name:"이지은",country:"🇰🇷 Korea",lang:"ko",stars:5,text:"아침 일찍 쓰키지 외부 시장! 갓 만든 타마고야키가 너무 맛있었어요. 신선한 해산물 덮밥도 꼭 드세요!",date:"Feb 2026",photos:[],aiData:null}
-   ]}
+var EXPS = [
+  {id:1,cat:'cooking_class',em:'🍳',name:'Traditional Ramen Making Class',nameZh:'传统拉面制作课',nameKo:'전통 라멘 만들기 클래스',host:'Tsukiji Cooking Studio',price:7000,dep:2000,dur:'2.5 hrs',gmax:8,loc:'Tsukiji, Tokyo',rat:4.9,rev:142,tag:'new',can:'48 hours',desc:'Learn to make authentic tonkotsu ramen from scratch. Prepare broth, noodles, and toppings then eat your creation!',hl:['Professional chef instructor','English and Japanese','All ingredients included','Take home recipe card','Max 8 participants']},
+  {id:2,cat:'market_tour',em:'🐟',name:'Tsukiji Market Food Tour',nameZh:'筑地市场美食游',nameKo:'츠키지 시장 푸드 투어',host:'Tokyo Food Walks',price:5500,dep:1500,dur:'2 hrs',gmax:10,loc:'Tsukiji, Tokyo',rat:4.8,rev:89,tag:'few',can:'24 hours',desc:'Walk through the famous seafood market with a local guide. Taste fresh sushi, tamagoyaki, and seasonal specialties.',hl:['Local guide','5-7 tastings included','Morning departure 7:30 AM','Small group max 10','Vegan options available']},
+  {id:3,cat:'sake_tasting',em:'🍶',name:'Fushimi Sake Brewery Tour',nameZh:'伏见酒窖游览与品酒',nameKo:'후시미 사케 양조장 투어',host:'Kyoto Sake Academy',price:8500,dep:2000,dur:'3 hrs',gmax:12,loc:'Fushimi, Kyoto',rat:5.0,rev:67,tag:'',can:'48 hours',desc:'Visit one of Kyoto oldest sake breweries. Learn the fermentation process and try seasonal junmai daiginjo.',hl:['5 sake varieties tasting','Exclusive brewery access','Sake pairing snacks','English guide','Certificate of completion']},
+  {id:4,cat:'craft',em:'🏺',name:'Kyoto Pottery Workshop',nameZh:'京都陶艺工作坊',nameKo:'교토 도예 워크숍',host:'Kiyomizu Ceramic Studio',price:9000,dep:3000,dur:'2 hrs',gmax:6,loc:'Higashiyama, Kyoto',rat:4.7,rev:54,tag:'',can:'72 hours',desc:'Shape and glaze your own piece of traditional Kyoto pottery. Your piece is fired and shipped to you.',hl:['4th generation ceramicist','Piece shipped worldwide','Matcha tea break','Max 6 guests','Near Kiyomizudera']},
+  {id:5,cat:'tea_ceremony',em:'🍵',name:'Authentic Tea Ceremony',nameZh:'正宗茶道体验',nameKo:'정통 다도 체험',host:'Urasenke Tea School',price:4500,dep:1500,dur:'1.5 hrs',gmax:8,loc:'Shinjuku, Tokyo',rat:4.9,rev:203,tag:'',can:'48 hours',desc:'Experience the 500-year-old art of chado in a traditional tatami room. Learn the philosophy and perform the ceremony.',hl:['Authentic tatami room','Traditional sweets','Matcha preparation hands-on','Certified teacher','Garden tour after']},
+  {id:6,cat:'festival',em:'🌸',name:'Cherry Blossom Hanami Experience',nameZh:'赏樱花见体验',nameKo:'벚꽃 하나미 체험',host:'Japan Seasons Co.',price:12000,dep:3000,dur:'4 hrs',gmax:20,loc:'Ueno Park, Tokyo',rat:4.8,rev:31,tag:'few',can:'24 hours',desc:'Join a traditional hanami party under the blossoms. Includes bento, sake, Japanese games, and cultural exchange.',hl:['Premium spot reservation','Bento by local restaurant','Sake included','Cultural games','English and Japanese host']},
+  {id:7,cat:'farm',em:'🌾',name:'Organic Farm Harvest Day',nameZh:'有机农场收获体验',nameKo:'유기농 농장 수확 체험',host:'Chiba Farm Stay',price:6500,dep:2000,dur:'Full day',gmax:15,loc:'Chiba Prefecture',rat:4.6,rev:28,tag:'',can:'72 hours',desc:'Spend a day with a Japanese farming family. Plant or harvest seasonal vegetables and cook a farm-to-table lunch.',hl:['Farm-to-table lunch','Round trip from Tokyo','Organic farm','Vegetables to take home','English-speaking host']},
+  {id:8,cat:'cooking_class',em:'🍱',name:'Sushi Chef for a Day',nameZh:'寿司主厨体验',nameKo:'스시 셰프 하루 체험',host:'Ginza Sushi School',price:18000,dep:5000,dur:'3 hrs',gmax:4,loc:'Ginza, Tokyo',rat:5.0,rev:45,tag:'new',can:'72 hours',desc:'Master nigiri, maki, and temaki with a Ginza-trained sushi chef. Maximum 4 participants for a personal experience.',hl:['Ginza trained chef','Premium seafood from Toyosu','Maximum 4 participants','Sake pairing included','Take home sushi knife']},
 ];
 
-// ═══════════════════════════════════════
-// SUPABASE HELPERS
-// ═══════════════════════════════════════
-async function sbReady() {
-  try {
-    await sb.from('restaurants').select('id').limit(1);
-    return true;
-  } catch(e) { return false; }
-}
+var CATLABELS = {cooking_class:'Cooking Class',market_tour:'Market Tour',sake_tasting:'Sake & Drinks',tea_ceremony:'Tea Ceremony',craft:'Traditional Craft',festival:'Festival & Events',farm:'Farm & Nature'};
 
-async function loadRestaurantsFromDB() {
-  try {
-    const res = await sb.from('restaurants').select('*').order('rating', { ascending: false });
-    const data = res?.data;
-    const error = res?.error;
-    if (error || !data || data.length === 0) return false;
-    const mapped = data.map(r => ({
-        id: (r.id||'').trim(), name: r.name, city: r.city || 'Tokyo', area: r.area || 'shinjuku',
-        category: r.category || 'ramen', emoji: r.emoji || '🍽️',
-        price: r.price_range || '¥¥', rating: parseFloat(r.rating) || 0,
-        reviewCount: parseInt(r.review_count) || 0, tags: r.tags || [],
-        tips: r.tips || '', phone: r.phone || '',
-        website: r.website || '', hours: r.hours || '',
-        address_ja: r.address_ja || '', address_en: r.address_en || '',
-        gmap_query: r.gmap_query || r.name + ' Tokyo',
-        trust: r.trust_badges || {},
-        reservation_fee: r.reservation_fee || 440,
-        mapX: parseFloat(r.map_x) || 40, mapY: parseFloat(r.map_y) || 40,
-        photos: r.photos || [], reviews: [], _sbId: r.id
-    }));
-    // Only replace seed data if we got real data back
-    DB.length = 0;
-    mapped.forEach(r => DB.push(r));
-    return true;
-  } catch(e) {
-    console.warn('loadRestaurantsFromDB error:', e);
-    return false;
-  }
-}
+var lang = 'en';
+var activeCat = 'all';
+var activeExp = null;
 
-async function loadReviewsFromDB(restaurantId) {
-  const r = DB.find(x => x.id === restaurantId || x._sbId === restaurantId);
-  if (!r) return;
-  try {
-    const { data } = await sb.from('reviews')
-      .select('*')
-      .eq('restaurant_id', r._sbId || restaurantId)
-      .order('created_at', { ascending: false })
-      .limit(20);
-    if (data?.length) {
-      r.reviews = data.map(rv => ({
-        name: rv.author_name, country: rv.author_country || '🌍',
-        lang: rv.lang || 'en', stars: rv.stars,
-        text: rv.content, date: new Date(rv.created_at).toLocaleDateString('en', {month:'short',year:'numeric'}),
-        photos: rv.photos || [], aiData: null, _sbId: rv.id
-      }));
-    }
-  } catch(e) {}
-}
-
-async function saveReviewToDB(restaurantId, reviewData) {
-  const r = DB.find(x => x.id === restaurantId);
-  const sbRestId = r?._sbId || restaurantId;
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const { data, error } = await sb.from('reviews').insert({
-      restaurant_id: sbRestId,
-      user_id: session?.user?.id || null,
-      author_name: reviewData.name,
-      author_country: reviewData.country,
-      lang: reviewData.lang || 'en',
-      stars: reviewData.stars,
-      content: reviewData.text,
-      photos: reviewData.photos || [],
-      trust_badges_added: reviewData.badges || {}
-    }).select().single();
-    if (!error && data) return data.id;
-  } catch(e) {}
-  return null;
-}
-
-async function saveReservationToDB(restaurantId, resData) {
-  const r = DB.find(x => x.id === restaurantId);
-  const sbRestId = r?._sbId;
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const { data, error } = await sb.from('reservations').insert({
-      restaurant_id: sbRestId,
-      user_id: session?.user?.id || null,
-      guest_name: resData.name,
-      guest_email: resData.email,
-      guest_phone: resData.phone || '',
-      reserved_at: resData.datetime,
-      party_size: resData.party_size,
-      meal_type: resData.meal_type || 'any',
-      special_requests: resData.special_requests || '',
-      fee_yen: resData.fee_yen || 0,
-      status: 'pending'
-    }).select().single();
-    if (!error && data) return data.id;
-  } catch(e) {}
-  return null;
-}
-
-// ═══════════════════════════════════════
-// PWA SETUP
-// ═══════════════════════════════════════
-// PWA manifest disabled for static hosting
-
-// Service Worker disabled for GitHub Pages
-let deferredInstallPrompt = null; // PWA install prompt
-
-// ═══════════════════════════════════════
-// STORAGE (IndexedDB for planner)
-// ═══════════════════════════════════════
-let db_idb = null;
-function openDB(){
-  return new Promise((res,rej)=>{
-    const req=indexedDB.open('taberu',1);
-    req.onupgradeneeded=e=>{e.target.result.createObjectStore('planner',{keyPath:'id'})};
-    req.onsuccess=e=>{db_idb=e.target.result;res(db_idb)};
-    req.onerror=()=>rej();
-  });
-}
-async function dbSave(item){const db=await openDB();return new Promise(r=>{const t=db.transaction('planner','readwrite');t.objectStore('planner').put(item);t.oncomplete=r;});}
-async function dbDelete(id){const db=await openDB();return new Promise(r=>{const t=db.transaction('planner','readwrite');t.objectStore('planner').delete(id);t.oncomplete=r;});}
-async function dbGetAll(){const db=await openDB();return new Promise(r=>{const t=db.transaction('planner','readonly');const req=t.objectStore('planner').getAll();req.onsuccess=()=>r(req.result);});}
-async function loadPlanner(){try{plannerItems=await dbGetAll();updatePlanCount();}catch(e){}}
-
-// ═══════════════════════════════════════
-// I18N
-// ═══════════════════════════════════════
-const TRANSLATIONS = {
-  en:{logoSub:"Eat Tokyo · Share the Story",heroEye:"FOOD · TRAVEL · DISCOVERY",
-    heroH1:'Eat <em>Tokyo</em>,<br>share the story.',heroP:"Real food reviews from real travelers.<br>Find authentic restaurants trusted by people like you.",
-    searchPH:"Ramen, halal, vegan, solo-friendly…",
-    btnAdd:"＋ Add",btnReview:"✏ Review",secTitle:"🏆 Top Rated",rankTitle:"Top 5 This Month",
-    tabReviews:"Reviews",tabWrite:"Write Review",tabInfo:"Info & Map",tabReserve:"📅 Reserve",
-    writeTitle:"Share Your Experience",lblName:"Your Name",lblCountry:"Country 🌍",lblRating:"Rating",
-    lblReview:"Your Review (any language welcome)",lblBadges:"What's available here?",
-    lblPhotos:"Photos (optional)",photoHint:"Click to add food photos",
-    btnCancel:"Cancel",btnPost:"Post Review",
-    addTitle:"Add a Restaurant",addSub:"Share a hidden gem 🌏",addLblName:"Restaurant Name",
-    addLblCity:"Neighborhood",addLblCat:"Category",addLblPrice:"Price Range",
-    addLblArea:"Area",addLblTags:"Tags",addLblDesc:"Tips / Description",
-    addCancel:"Cancel",addSubmit:"Add Restaurant 🎌",writeCTA:"+ Write a Review",
-    mapTitle:"Tokyo Food Map",mapSub:"Tap any pin to discover a restaurant",
-    toastPosted:"Review posted! ありがとう 🎉",toastAdded:"Restaurant added! 🎌",
-    toastFill:"Please fill in name, review, and rating",
-    toastSaved:"Added to your food plan! 🗓",toastUnsaved:"Removed from plan",
-    toastReserved:"Reservation submitted! 📅 Check your email for confirmation.",
-    btnLogin:"🔑 Login"},
-  zh:{logoSub:"探索东京美食 · 分享旅途故事",heroEye:"美食 · 旅行 · 发现",
-    heroH1:'品味<em>东京</em>，<br>分享故事。',heroP:"来自全球旅行者的真实美食评价。<br>探索东京每个角落的完美料理与隐藏美食。",
-    searchPH:"拉面、清真、素食…",
-    btnAdd:"＋ 添加",btnReview:"✏ 写评价",secTitle:"🏆 本月最佳",rankTitle:"本月Top 5",
-    tabReviews:"评价",tabWrite:"写评价",tabInfo:"信息与地图",tabReserve:"📅 预约",
-    writeTitle:"分享您的体验",lblName:"姓名",lblCountry:"国籍 🌍",lblRating:"评分",
-    lblReview:"评价（任何语言均可）",lblBadges:"这里提供什么？",
-    lblPhotos:"照片（可选）",photoHint:"点击上传美食照片",
-    btnCancel:"取消",btnPost:"发布评价",
-    addTitle:"添加餐厅",addSub:"向世界分享隐藏美食 🌏",addLblName:"餐厅名称",
-    addLblCity:"街区",addLblCat:"类别",addLblPrice:"价格区间",
-    addLblArea:"区域",addLblTags:"标签",addLblDesc:"简介/提示",
-    addCancel:"取消",addSubmit:"添加餐厅 🎌",writeCTA:"+ 写评价",
-    mapTitle:"东京美食地图",mapSub:"点击图钉查看餐厅",
-    toastPosted:"评价已发布！🎉",toastAdded:"餐厅已添加！🎌",toastFill:"请填写姓名、评价和评分",
-    toastSaved:"已添加到行程！🗓",toastUnsaved:"已从行程移除",
-    toastReserved:"预约已提交！📅 请查收确认邮件。",btnLogin:"🔑 登录"},
-  ko:{logoSub:"도쿄 맛집 · 여행 이야기",heroEye:"음식 · 여행 · 발견",
-    heroH1:'<em>도쿄</em>를 맛보고,<br>이야기를 나누세요.',heroP:"전 세계 여행자들의 솔직한 맛집 리뷰.<br>도쿄 곳곳의 완벽한 한 끼와 숨겨진 맛집을 찾아보세요.",
-    searchPH:"라멘, 할랄, 비건, 혼밥 가능…",
-    btnAdd:"＋ 추가",btnReview:"✏ 리뷰",secTitle:"🏆 이달의 베스트",rankTitle:"이달의 TOP 5",
-    tabReviews:"리뷰",tabWrite:"리뷰 작성",tabInfo:"정보 & 지도",tabReserve:"📅 예약",
-    writeTitle:"경험을 공유하세요",lblName:"이름",lblCountry:"국가 🌍",lblRating:"평점",
-    lblReview:"리뷰 (어떤 언어도 환영합니다)",lblBadges:"이 식당에서 제공되는 것은?",
-    lblPhotos:"사진 (선택)",photoHint:"음식 사진 추가하기",
-    btnCancel:"취소",btnPost:"리뷰 게시",
-    addTitle:"식당 추가",addSub:"숨겨진 맛집을 세상에 알리세요 🌏",addLblName:"식당 이름",
-    addLblCity:"동네",addLblCat:"카테고리",addLblPrice:"가격대",
-    addLblArea:"지역",addLblTags:"태그",addLblDesc:"설명/팁",
-    addCancel:"취소",addSubmit:"식당 추가 🎌",writeCTA:"+ 리뷰 작성",
-    mapTitle:"도쿄 맛집 지도",mapSub:"핀을 클릭하여 식당을 확인하세요",
-    toastPosted:"리뷰가 등록되었습니다! 🎉",toastAdded:"식당이 추가되었습니다! 🎌",toastFill:"이름, 리뷰, 평점을 입력해주세요",
-    toastSaved:"일정에 추가되었습니다! 🗓",toastUnsaved:"일정에서 제거되었습니다",
-    toastReserved:"예약이 접수되었습니다! 📅 확인 이메일을 확인하세요.",btnLogin:"🔑 로그인"}
+var LANGS = {
+  en:{note:'Better Experiences in Japan',dis:'✨ Explore Japan',ai:'✦ AI Match',chat:'💬 Messages',se:'Experiences',sr:'Avg Rating',ss:'Show-up Rate',ef:'experiences found'},
+  zh:{note:'在日本获得更好的体验',dis:'✨ 探索',ai:'✦ AI 匹配',chat:'💬 消息',se:'体验项目',sr:'平均评分',ss:'到场率',ef:'个体验'},
+  ko:{note:'일본에서 더 좋은 체험을',dis:'✨ 탐색',ai:'✦ AI 매칭',chat:'💬 메시지',se:'체험',sr:'평균 평점',ss:'참석률',ef:'개 체험'}
 };
-function tt(k){return (TRANSLATIONS[lang]||TRANSLATIONS.en)[k]||TRANSLATIONS.en[k]||k;}
-function setLang(l){
-  lang=l;
-  document.querySelectorAll('.lang-btn').forEach((b,i)=>b.classList.toggle('active',['en','zh','ko'][i]===l));
-  applyLang();
-}
-const LANG_MAP={
-  'logo-sub':'logoSub','hero-eye':'heroEye','hero-p':'heroP','hero-h1':'heroH1',
-  'btn-add':'btnAdd','btn-review':'btnReview','sec-title':'secTitle','rank-title':'rankTitle',
-  'tab-reviews':'tabReviews','tab-write':'tabWrite','tab-info':'tabInfo','tab-reserve':'tabReserve',
-  'write-title':'writeTitle','lbl-name':'lblName','lbl-country':'lblCountry','lbl-rating':'lblRating',
-  'lbl-review':'lblReview','lbl-badges':'lblBadges','lbl-photos':'lblPhotos','photo-hint':'photoHint',
-  'btn-cancel':'btnCancel','btn-post':'btnPost','write-cta':'writeCTA',
-  'add-title':'addTitle','add-sub':'addSub','add-lbl-name':'addLblName','add-lbl-city':'addLblCity',
-  'add-lbl-cat':'addLblCat','add-lbl-price':'addLblPrice','add-lbl-area':'addLblArea',
-  'add-lbl-tags':'addLblTags','add-lbl-desc':'addLblDesc','add-cancel':'addCancel','add-submit':'addSubmit',
-  'map-card-name':'mapTitle','map-card-sub':'mapSub','btn-login':'btnLogin'
-};
-function applyLang(){
-  Object.entries(LANG_MAP).forEach(([id,key])=>{
-    const el=document.getElementById(id);if(!el)return;
-    const v=tt(key);
-    if(key==='heroH1'||key==='heroP')el.innerHTML=v;else el.textContent=v;
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lbtn').forEach(function(b){
+    b.classList.toggle('active',(l==='en'&&b.textContent==='EN')||(l==='zh'&&b.textContent==='中文')||(l==='ko'&&b.textContent==='한국어'));
   });
-  document.getElementById('searchInput').placeholder=tt('searchPH');
-  renderCards();renderRanking();
+  var d=LANGS[l];
+  document.getElementById('lang-note').textContent=d.note;
+  document.getElementById('tbn-discover').textContent=d.dis;
+  document.getElementById('tbn-ai').textContent=d.ai;
+  document.getElementById('tbn-chat').innerHTML=d.chat+' <span class="notif"></span>';
+  document.getElementById('stat-exp').textContent=d.se;
+  document.getElementById('stat-rating').textContent=d.sr;
+  document.getElementById('stat-show').textContent=d.ss;
+  renderExps();
 }
 
-// ═══════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════
-let lang='en', currentCat='all', activeFilters=new Set(), communityFilter='all';
-let reviewCommunityFilter='all', selectedStar=0, activeId=null;
-let pendingPhotos=[], pendingBadges=new Set(), plannerItems=[];
-
-// ═══════════════════════════════════════
-// AUTH (Supabase)
-// ═══════════════════════════════════════
-let currentUser = null;
-let authCurrentTab = 'login';
-
-async function loadSession(){
-  const {data:{session}} = await sb.auth.getSession().catch(()=>({data:{session:null}}));
-  currentUser = session?.user || null;
-  updateAuthUI();
-  sb.auth.onAuthStateChange((_,s)=>{currentUser=s?.user||null;updateAuthUI();});
+function switchTab(id) {
+  document.querySelectorAll('.tabpage').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tabbtn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+id).classList.add('active');
+  document.getElementById('tbn-'+id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function updateAuthUI(){
-  const loginBtn=document.getElementById('btn-login');
-  const userWrap=document.getElementById('userWrap');
-  if(!loginBtn||!userWrap)return;
-  if(currentUser){
-    loginBtn.style.display='none';
-    userWrap.style.display='flex';
-    const name=currentUser.user_metadata?.name||currentUser.email?.split('@')[0]||'?';
-    const initial=name[0].toUpperCase();
-    document.getElementById('navAvatar').textContent=initial;
-    document.getElementById('navUserName').textContent=name;
-    document.getElementById('menuUserName').textContent=name;
-    document.getElementById('menuUserEmail').textContent=currentUser.email;
-  }else{
-    loginBtn.style.display='';
-    userWrap.style.display='none';
-  }
+function filterCat(cat,el) {
+  activeCat=cat;
+  document.querySelectorAll('.cchip').forEach(function(c){c.classList.remove('active');});
+  el.classList.add('active');
+  renderExps();
 }
 
-function openAuth(tab='login'){
-  clearAuthMessages();switchAuthTab(tab);
-  document.getElementById('authOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById(tab==='login'?'loginEmail':'regName')?.focus(),300);
-}
-function closeAuth(){document.getElementById('authOverlay').classList.remove('open');clearAuthMessages();}
-function switchAuthTab(tab){
-  authCurrentTab=tab;
-  document.getElementById('authTabLogin').classList.toggle('active',tab==='login');
-  document.getElementById('authTabRegister').classList.toggle('active',tab==='register');
-  document.getElementById('loginForm').style.display=tab==='login'?'':'none';
-  document.getElementById('registerForm').style.display=tab==='register'?'':'none';
-  clearAuthMessages();
-}
-function clearAuthMessages(){
-  ['authError','authSuccess'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('show');el.textContent='';}});
-}
-function showAuthError(msg){const el=document.getElementById('authError');if(el){el.textContent=msg;el.classList.add('show');}}
-function showAuthSuccess(msg){const el=document.getElementById('authSuccess');if(el){el.textContent=msg;el.classList.add('show');}}
-
-async function handleLogin(){
-  const email=document.getElementById('loginEmail').value.trim();
-  const pw=document.getElementById('loginPassword').value;
-  const btn=document.getElementById('loginBtn');
-  if(!email||!pw)return showAuthError('Please enter email and password.');
-  btn.disabled=true;btn.textContent='Logging in…';
-  const {error}=await sb.auth.signInWithPassword({email,password:pw});
-  if(error)showAuthError(error.message);
-  else{showAuthSuccess('✓ Logged in!');setTimeout(closeAuth,900);}
-  btn.disabled=false;btn.textContent='Log In →';
-}
-async function handleRegister(){
-  const name=document.getElementById('regName').value.trim();
-  const country=document.getElementById('regCountry').value.trim();
-  const email=document.getElementById('regEmail').value.trim().toLowerCase();
-  const pw=document.getElementById('regPassword').value;
-  const pwc=document.getElementById('regPasswordConfirm').value;
-  const btn=document.getElementById('registerBtn');
-  if(!name)return showAuthError('Please enter your display name.');
-  if(!email||!email.includes('@'))return showAuthError('Please enter a valid email.');
-  if(pw.length<8)return showAuthError('Password must be at least 8 characters.');
-  if(pw!==pwc)return showAuthError('Passwords do not match.');
-  btn.disabled=true;btn.textContent='Creating account…';
-  const {error}=await sb.auth.signUp({email,password:pw,options:{data:{name,country,role:'traveler'}}});
-  if(error)showAuthError(error.message);
-  else{showAuthSuccess('🎉 Account created! Welcome to TABERU, '+name+'!');setTimeout(closeAuth,1600);}
-  btn.disabled=false;btn.textContent='Create Account →';
-}
-async function logout(){
-  closeUserMenu();
-  await sb.auth.signOut().catch(()=>{});
-  currentUser=null;updateAuthUI();showToast('Logged out. またね！ 👋');
-}
-function toggleUserMenu(){document.getElementById('userMenu').classList.toggle('open');}
-function closeUserMenu(){document.getElementById('userMenu').classList.remove('open');}
-document.addEventListener('click',e=>{
-  const wrap=document.getElementById('userWrap');
-  if(wrap&&!wrap.contains(e.target))closeUserMenu();
-});
-function openMyReviews(){
-  closeUserMenu();
-  if(!currentUser){openAuth('login');return;}
-  // Find reviews by current user email
-  const myRevs=[];
-  DB.forEach(r=>{
-    r.reviews.forEach((rv,i)=>{
-      if(rv.authorEmail===currentUser.email||
-         rv.name===(currentUser.user_metadata?.name)||
-         (currentUser.user_metadata?.name&&rv.name===currentUser.user_metadata.name)){
-        myRevs.push({restaurant:r.name,restaurantId:r.id,emoji:r.emoji,review:rv,idx:i});
-      }
-    });
+function renderExps() {
+  var filtered=EXPS.filter(function(e){return activeCat==='all'||e.cat===activeCat;});
+  var d=LANGS[lang];
+  document.getElementById('exp-count-wrap').textContent=filtered.length+' '+d.ef;
+  var html='';
+  filtered.forEach(function(e){
+    var n=lang==='zh'?e.nameZh:lang==='ko'?e.nameKo:e.name;
+    var b='';
+    if(e.tag==='new')b+='<span class="badge bnew">New</span>';
+    if(e.tag==='few')b+='<span class="badge bfew">Few spots</span>';
+    b+='<span class="badge bcancel">&#10003; Free cancel</span>';
+    var cl=CATLABELS[e.cat]||e.cat;
+    var city=e.loc.split(',')[0];
+    html+='<div class="expcard" onclick="openBooking('+e.id+')">';
+    html+='<div class="expthumb"><span>'+e.em+'</span><div class="expbadges">'+b+'</div><div class="expprice">&#165;'+e.price.toLocaleString()+'</div></div>';
+    html+='<div class="expbody"><div class="expcat">'+cl+'</div><div class="expname">'+n+'</div><div class="exphost">by '+e.host+'</div>';
+    html+='<div class="expmeta"><span>&#9201; '+e.dur+'</span><span>&#128101; 1-'+e.gmax+'</span><span>&#128205; '+city+'</span></div></div>';
+    html+='<div class="expfoot"><div><div class="exprating">&#9733; '+e.rat+'</div><div class="exprevs">'+e.rev+' reviews</div></div>';
+    html+='<button class="btnbook" onclick="event.stopPropagation();openBooking('+e.id+')">Book Now</button></div></div>';
   });
-  const starsH=n=>'★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n));
-  const panel=document.getElementById('plannerBody');
-  document.getElementById('plannerOverlay').classList.add('open');
-  if(!myRevs.length){
-    panel.innerHTML=`
-      <div class="planner-empty">
-        <div class="planner-empty-icon">📝</div>
-        <p style="font-size:15px;font-weight:500;margin-bottom:8px">No reviews yet</p>
-        <p style="font-size:13px;color:var(--fog)">Your posted reviews will appear here.</p>
-        <button class="nav-btn nav-amber" style="margin-top:16px" onclick="closePlanner()">Browse restaurants →</button>
-      </div>`;
-  } else {
-    panel.innerHTML=`
-      <div style="margin-bottom:16px">
-        <div style="font-size:16px;font-weight:500">📝 My Reviews (${myRevs.length})</div>
-      </div>
-      ${myRevs.map(m=>`
-        <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="font-size:24px">${m.emoji}</div>
-            <div>
-              <div style="font-size:14px;font-weight:500">${m.restaurant}</div>
-              <div style="color:var(--amber);font-size:12px">${starsH(m.review.stars)} ${m.review.stars}</div>
-            </div>
-            <div style="margin-left:auto;font-size:11px;color:var(--fog)">${m.review.date}</div>
-          </div>
-          <div style="font-size:13px;color:var(--stone);line-height:1.6">${m.review.text.slice(0,120)}${m.review.text.length>120?'…':''}</div>
-          <button style="margin-top:8px;padding:5px 12px;border-radius:5px;border:1px solid var(--border);background:transparent;font-size:12px;cursor:pointer;color:var(--stone)"
-            onclick="openDetail(${JSON.stringify(m.restaurantId)});closePlanner()">View Restaurant →</button>
-        </div>`).join('')}`;
-  }
+  document.getElementById('exp-grid').innerHTML=html;
 }
 
-// ═══════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════
-const starsHtml=n=>'★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n));
-const EMOJI_MAP={ramen:'🍜',sushi:'🍣',izakaya:'🍶',yakiniku:'🥩',tempura:'🍤',udon:'🍝',street:'🏮',cafe:'☕'};
-const LABEL_MAP={ramen:'Ramen',sushi:'Sushi',izakaya:'Izakaya',yakiniku:'Yakiniku',tempura:'Tempura',udon:'Udon/Soba',street:'Street Food',cafe:'Café'};
-const BG_MAP={ramen:'#fff0e6',sushi:'#e8f4f8',izakaya:'#fdf2ff',yakiniku:'#fff5e6',tempura:'#fff9e6',udon:'#f0f5ff',street:'#fff3e0',cafe:'#f5f0e8'};
-const TRUST_CONFIG={
-  english_menu:{label:'English Menu',icon:'🇺🇸',cls:'tbadge-en'},
-  card_ok:{label:'Card OK',icon:'💳',cls:'tbadge-card'},
-  halal:{label:'Halal',icon:'🌙',cls:'tbadge-halal'},
-  vegan:{label:'Vegan/Veg',icon:'🌿',cls:'tbadge-vegan'},
-  solo_ok:{label:'Solo OK',icon:'🙋',cls:'tbadge-solo'},
-  no_reservation:{label:'Walk-in OK',icon:'⚡',cls:'tbadge-card'}
-};
-function trustBadgesHtml(trust={}){
-  return Object.entries(trust).filter(([,v])=>v).map(([k])=>{
-    const c=TRUST_CONFIG[k];return `<span class="tbadge ${c.cls}">${c.icon} ${c.label}</span>`;
-  }).join('');
-}
-function isSaved(id){return plannerItems.some(p=>p.id===id);}
-function updatePlanCount(){
-  const el=document.getElementById('planCount');
-  el.textContent=plannerItems.length;
-  el.classList.toggle('show',plannerItems.length>0);
-}
-function gmapUrl(r){return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.gmap_query||r.name+' Tokyo')}`;}
-function gmapDirections(r){return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(r.gmap_query||r.address_en)}`;}
-
-// ═══════════════════════════════════════
-// FILTERS
-// ═══════════════════════════════════════
-function setCat(cat,el){
-  currentCat=cat;
-  document.querySelectorAll('.cat-chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');renderCards();
-}
-function toggleSF(key,el){
-  el.classList.toggle('active');
-  if(activeFilters.has(key))activeFilters.delete(key);else activeFilters.add(key);
-  renderCards();
-}
-function toggleCF(key,el){
-  communityFilter=key;
-  document.querySelectorAll('.cf-chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');renderCards();
-}
-function getFiltered(){
-  const q=document.getElementById('searchInput').value.toLowerCase();
-  const area=document.getElementById('areaFilter').value;
-  return DB.filter(r=>{
-    if(currentCat!=='all'&&r.category!==currentCat)return false;
-    if(area&&r.area!==area)return false;
-    for(const f of activeFilters){if(!r.trust[f])return false;}
-    if(communityFilter!=='all'){if(!r.reviews.some(rv=>rv.lang===communityFilter))return false;}
-    if(q){
-      const m=r.name.toLowerCase().includes(q)||r.city.toLowerCase().includes(q)||
-        r.tags.some(t=>t.toLowerCase().includes(q))||
-        (r.trust.halal&&q.includes('halal'))||(r.trust.vegan&&(q.includes('vegan')||q.includes('vegetarian')))||
-        (r.trust.english_menu&&q.includes('english'))||(r.trust.solo_ok&&(q.includes('solo')||q.includes('alone')));
-      if(!m)return false;
-    }
-    return true;
-  }).sort((a,b)=>b.rating-a.rating);
+function openBooking(id) {
+  var e=null;
+  for(var i=0;i<EXPS.length;i++){if(EXPS[i].id===id){e=EXPS[i];break;}}
+  if(!e)return;
+  activeExp=e;
+  var n=lang==='zh'?e.nameZh:lang==='ko'?e.nameKo:e.name;
+  var hlh='';
+  e.hl.forEach(function(h){hlh+='<div class="mhl">'+h+'</div>';});
+  var gopts='';
+  for(var g=1;g<=Math.min(e.gmax,6);g++){gopts+='<option value="'+g+'">'+g+' guest'+(g>1?'s':'')+'</option>';}
+  var h='<div class="mthumb"><span>'+e.em+'</span></div>';
+  h+='<div class="mbody">';
+  h+='<div class="mcat">'+(CATLABELS[e.cat]||e.cat)+'</div>';
+  h+='<div class="mtitle">'+n+'</div>';
+  h+='<div class="mhost">by '+e.host+' &middot; '+e.loc+'</div>';
+  h+='<div class="mdesc">'+e.desc+'</div>';
+  h+='<div class="mhls">'+hlh+'</div>';
+  h+='<div class="divider"></div>';
+  h+='<div class="depbox">&#128274; <strong>Deposit required: &#165;'+e.dep.toLocaleString()+'</strong> &mdash; charged now to secure your spot. Remaining balance collected on the day. Fully refundable if cancelled '+e.can+' before.</div>';
+  h+='<div class="cbox"><strong>&#128737; No-Show Protection</strong><br>Free cancellation up to '+e.can+' before.<br>Auto-reminders at 7 days, 3 days, and 24 hours.<br>Host confirms your arrival to release deposit.</div>';
+  h+='<div class="seclbl">Book This Experience</div>';
+  h+='<div class="bgrid">';
+  h+='<div class="bfield"><label class="blabel">Date</label><input class="binput" type="date" id="book-date"></div>';
+  h+='<div class="bfield"><label class="blabel">Guests</label><select class="bselect" id="book-guests" onchange="updateTotal()">'+gopts+'</select></div>';
+  h+='<div class="bfield"><label class="blabel">Time</label><select class="bselect"><option>10:00 AM</option><option>2:00 PM</option><option>6:00 PM</option></select></div>';
+  h+='<div class="bfield"><label class="blabel">Language</label><select class="bselect"><option>English</option><option>&#20013;&#25991;</option><option>&#54620;&#44397;&#50612;</option></select></div>';
+  h+='</div>';
+  h+='<div class="btotal"><span class="btotallbl">Total</span><span class="btotalp" id="book-total">&#165;'+e.price.toLocaleString()+'</span></div>';
+  h+='<button class="btnconfirm" onclick="confirmBooking()">Confirm and Pay Deposit (&#165;'+e.dep.toLocaleString()+')</button>';
+  h+='<div style="text-align:center;font-size:11px;color:var(--stone);margin-top:8px">Secured by Stripe &middot; Free cancellation until '+e.can+' before</div>';
+  h+='</div>';
+  document.getElementById('booking-content').innerHTML=h;
+  document.getElementById('bookingOverlay').classList.add('open');
 }
 
-// ═══════════════════════════════════════
-// RENDER CARDS
-// ═══════════════════════════════════════
-function renderCards(){
-  const list=getFiltered();
-  document.getElementById('sec-count').textContent=list.length+' places';
-  document.getElementById('cardList').innerHTML=list.map((r,i)=>{
-    const saved=isSaved(r.id);
-    const badges=trustBadgesHtml(r.trust);
-    const rid = (r.id||'').trim();
-    return `
-    <div class="rcard" data-rid="${rid}" style="animation-delay:${i*.04}s">
-      <div class="rcard-img" style="background:${BG_MAP[r.category]||'#f5f0e8'}">
-        ${r.photos.length?`<img class="rcard-photo" src="${r.photos[0]}" alt="" onerror="this.style.display='none'">`:
-          `<span>${r.emoji}</span>`}
-        ${i===0?'<div class="rcard-rank rk1">1</div>':i===1?'<div class="rcard-rank rk2">2</div>':i===2?'<div class="rcard-rank rk3">3</div>':''}
-        <div class="price-badge">${r.price}</div>
-      </div>
-      <div class="rcard-body">
-        <div>
-          <div class="rcard-top">
-            <div class="rcard-name">${r.name}</div>
-            <button class="save-btn ${saved?'saved':''}" data-action="save">${saved?'❤️':'🤍'}</button>
-          </div>
-          <div class="rcard-loc">📍 ${r.city}</div>
-          <div class="rcard-stars">
-            <span class="stars-gold">${starsHtml(r.rating)}</span>
-            <span class="rating-val">${r.rating}</span>
-            <span class="review-ct">(${r.reviewCount.toLocaleString()})</span>
-          </div>
-          ${badges?`<div class="trust-badges">${badges}</div>`:''}
-          <div class="rcard-tags">${r.tags.slice(0,3).map(t=>`<span class="rtag">${t}</span>`).join('')}</div>
-        </div>
-        <div class="rcard-preview">${(r.tips||r.reviews[0]?.text||r.description||'Click to view details').slice(0,75)}…</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Event delegation for card clicks
-  const cl = document.getElementById('cardList');
-  cl.onclick = function(e) {
-    const saveBtn = e.target.closest('[data-action="save"]');
-    if (saveBtn) {
-      const card = saveBtn.closest('[data-rid]');
-      if (card) toggleSave(card.dataset.rid);
-      return;
-    }
-    const card = e.target.closest('[data-rid]');
-    if (card) openDetail(card.dataset.rid);
-  };
+function updateTotal() {
+  if(!activeExp)return;
+  var g=parseInt(document.getElementById('book-guests').value)||1;
+  var el=document.getElementById('book-total');
+  if(el)el.textContent='&#165;'+(activeExp.price*g).toLocaleString();
 }
 
-// ═══════════════════════════════════════
-// RANKING & MAP
-// ═══════════════════════════════════════
-function renderRanking(){
-  document.getElementById('rankList').innerHTML=[...DB].sort((a,b)=>b.rating-a.rating).slice(0,5).map((r,i)=>`
-    <div class="rank-item"${(r.id||'').trim()}')">
-      <div class="rank-num ${['r1','r2','r3','rn','rn'][i]}">${i+1}</div>
-      <div class="rank-emoji">${r.emoji}</div>
-      <div class="rank-info"><div class="rank-name">${r.name}</div><div class="rank-city">${r.city.split(',')[0]}</div></div>
-      <div class="rank-score">${r.rating}</div>
-    </div>`).join('');
-}
-function renderMapPins(){
-  document.getElementById('mapPins').innerHTML=DB.map(r=>`
-    <div class="map-pin" style="left:${r.mapX}%;top:${r.mapY}%" onclick="mapPinClick('${(r.id||'').trim()}')">
-      <div class="pin-dot ${isSaved(r.id)?'saved-pin':''}"><span>${r.emoji}</span></div>
-      <div class="pin-label">${r.name.split(' ').slice(0,2).join(' ')}</div>
-    </div>`).join('');
-}
-function mapPinClick(id){
-  const cleanId=(id||'').trim();const r=DB.find(x=>x.id===cleanId);if(!r)return;activeId=cleanId;
-  document.getElementById('map-card-name').textContent=r.name;
-  document.getElementById('map-card-sub').innerHTML=`📍 ${r.city.split(',')[0]} · ${starsHtml(r.rating)} ${r.rating} &nbsp;<a href="${gmapUrl(r)}" target="_blank" style="color:var(--amber);font-size:10px;text-decoration:none">Maps ↗</a>`;
-  openDetail(id);
+function confirmBooking() {
+  var ref='SGJ-'+Math.random().toString(36).substr(2,6).toUpperCase();
+  var h='<div class="confirmwrap">';
+  h+='<div class="confirmicon">&#127881;</div>';
+  h+='<div class="confirmtitle">Booking Confirmed!</div>';
+  h+='<div class="confirmsub">Your experience is booked. The host will message you shortly. Check your email for confirmation and reminders.</div>';
+  h+='<div class="confirmref">'+ref+'</div>';
+  h+='<div class="confirmacts">';
+  h+='<button class="btnconfirm" style="width:auto;padding:9px 20px" onclick="closeBooking();switchTab(\'chat\')">Open Chat with Host</button>';
+  h+='<button class="btnoutline" onclick="closeBooking()">Continue Browsing</button>';
+  h+='</div>';
+  h+='<div style="margin-top:16px;background:var(--cream);border-radius:8px;padding:12px;font-size:12px;color:var(--stone);line-height:1.7">Reminders at 7 days &middot; 3 days &middot; 24 hours before.</div>';
+  h+='</div>';
+  document.getElementById('booking-content').innerHTML=h;
+  showToast('Booking confirmed! '+ref);
 }
 
-// ═══════════════════════════════════════
-// PLANNER
-// ═══════════════════════════════════════
-async function toggleSave(id){
-  const cleanId=(id||'').trim();const r=DB.find(x=>x.id===cleanId);if(!r)return;activeId=cleanId;
-  if(isSaved(id)){
-    plannerItems=plannerItems.filter(p=>p.id!==id);
-    await dbDelete(id).catch(()=>{});showToast(tt('toastUnsaved'));
-  }else{
-    const item={id,name:r.name,city:r.city,emoji:r.emoji,day:1};
-    plannerItems.push(item);
-    await dbSave(item).catch(()=>{});showToast(tt('toastSaved'));
-  }
-  updatePlanCount();renderCards();renderMapPins();
-}
-function openPlanner(){renderPlannerPanel();document.getElementById('plannerOverlay').classList.add('open');}
-function closePlanner(){document.getElementById('plannerOverlay').classList.remove('open');}
-function renderPlannerPanel(){
-  const body=document.getElementById('plannerBody');
-  if(!plannerItems.length){
-    body.innerHTML=`<div class="planner-empty"><div class="planner-empty-icon">🗓</div><p style="font-size:15px;font-weight:500;margin-bottom:8px">Your food plan is empty</p><p style="font-size:13px;color:var(--fog)">Tap 🤍 on any restaurant to save it here.</p></div>`;
-    return;
-  }
-  const days=[...new Set(plannerItems.map(p=>p.day))].sort();
-  body.innerHTML=days.map(day=>`
-    <div class="plan-day-label">Day ${day}</div>
-    ${plannerItems.filter(p=>p.day===day).map(p=>`
-      <div class="plan-item">
-        <div style="font-size:26px;flex-shrink:0">${p.emoji}</div>
-        <div class="plan-item-info">
-          <div class="plan-item-name">${p.name}</div>
-          <div class="plan-item-meta">${p.city.split(',')[0]}</div>
-          <div class="day-selector" style="margin-top:6px">${[1,2,3,4,5,6,7].map(d=>`<button class="day-btn ${p.day===d?'sel':''}" onclick="changeDay(${JSON.stringify(p.id)},${d})">D${d}</button>`).join('')}</div>
-        </div>
-        <button class="plan-remove" onclick="toggleSave(${JSON.stringify(p.id)});renderPlannerPanel()">✕</button>
-      </div>`).join('')}`).join('')+
-    `<button class="planner-export" onclick="exportPlan()">📋 Export My Food Plan</button>`;
-}
-async function changeDay(id,day){
-  const item=plannerItems.find(p=>p.id===id);
-  if(item){item.day=day;await dbSave(item).catch(()=>{});renderPlannerPanel();}
-}
-function exportPlan(){
-  const lines=['🍜 My Tokyo Food Plan — TABERU','='.repeat(40)];
-  const days=[...new Set(plannerItems.map(p=>p.day))].sort();
-  days.forEach(d=>{
-    lines.push(`\nDAY ${d}:`);
-    plannerItems.filter(p=>p.day===d).forEach(p=>{
-      const r=DB.find(x=>x.id===p.id);
-      lines.push(`  ${p.emoji} ${p.name}`);
-      if(r?.address_en)lines.push(`     📍 ${r.address_en}`);
-      if(r)lines.push(`     🗺 ${gmapUrl(r)}`);
-    });
-  });
-  lines.push('\n— Generated by TABERU (taberu.app)');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'}));
-  a.download='my_tokyo_food_plan.txt';a.click();
-  showToast('Plan exported! 📋');
-}
+function closeBooking(){document.getElementById('bookingOverlay').classList.remove('open');activeExp=null;}
+function openHostModal(){document.getElementById('hostOverlay').classList.add('open');}
+function closeHostModal(){document.getElementById('hostOverlay').classList.remove('open');}
 
-// ═══════════════════════════════════════
-// DETAIL MODAL
-// ═══════════════════════════════════════
-async function openDetail(id){
-  const cleanId=(id||'').trim();const r=DB.find(x=>x.id===cleanId);if(!r)return;activeId=cleanId;
-  // Load fresh reviews from Supabase (non-blocking - modal opens regardless)
-  loadReviewsFromDB(id).catch(()=>{});
-  document.getElementById('modalName').textContent=r.name;
-  document.getElementById('modalMeta').textContent=`📍 ${r.address_ja||r.city} · ${LABEL_MAP[r.category]||r.category} · ${r.price} · ${starsHtml(r.rating)} ${r.rating}`;
-  const ph=document.getElementById('modalPhoto'),em=document.getElementById('modalEmoji');
-  if(r.photos.length){ph.src=r.photos[0];ph.style.display='block';em.style.display='none';ph.onerror=()=>{ph.style.display='none';em.style.display='block';em.textContent=r.emoji};}
-  else{ph.style.display='none';em.style.display='block';em.textContent=r.emoji;}
-  buildInfoTab(r);
-  reviewCommunityFilter='all';
-  renderReviewFeed(r);
-  buildReserveTab(r);
-  switchTab('reviews',document.getElementById('tab-reviews'));
-  selectedStar=0;updateStars();pendingPhotos=[];pendingBadges=new Set();
-  document.querySelectorAll('.badge-toggle').forEach(b=>b.classList.remove('on'));
-  document.getElementById('photoPreview').innerHTML='';
-  document.getElementById('writerName').value='';
-  document.getElementById('writerCountry').value='';
-  document.getElementById('reviewText').value='';
-  // Auto-fill from logged-in user
-  if(currentUser){
-    setTimeout(()=>{
-      const nm=document.getElementById('writerName');
-      const co=document.getElementById('writerCountry');
-      if(nm&&!nm.value)nm.value=currentUser.user_metadata?.name||'';
-      if(co&&!co.value)co.value=currentUser.user_metadata?.country||'';
-    },100);
-  }
-  document.getElementById('detailOverlay').classList.add('open');
-}
-function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');activeId=null;}
-function switchTab(name,btn){
-  document.querySelectorAll('.m-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('panel-'+name).classList.add('active');
-}
-
-// ═══════════════════════════════════════
-// INFO TAB
-// ═══════════════════════════════════════
-function buildInfoTab(r){
-  const trustItems=Object.entries(r.trust).map(([k,v])=>{
-    const c=TRUST_CONFIG[k];
-    return `<div class="trust-item ${v?'yes':'no'}"><span class="trust-icon">${v?c.icon:'✗'}</span><span>${c.label}: <strong>${v?'Yes':'No'}</strong></span></div>`;
-  }).join('');
-  document.getElementById('infoTabContent').innerHTML=`
-    ${(r.address_ja||r.address_en)?`
-    <div style="background:var(--cream);border-radius:8px;padding:14px 16px;margin-bottom:14px">
-      ${r.address_ja?`<div style="font-size:14px;font-weight:500;margin-bottom:3px">📍 ${r.address_ja}</div>`:''}
-      ${r.address_en?`<div style="font-size:12px;color:var(--stone);margin-bottom:10px">${r.address_en}</div>`:''}
-      <div class="gmap-btn-row">
-        <a href="${gmapUrl(r)}" target="_blank" class="gmap-btn gmap-primary">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-          Open in Google Maps
-        </a>
-        <a href="${gmapDirections(r)}" target="_blank" class="gmap-btn gmap-secondary">🧭 Get Directions</a>
-      </div>
-    </div>`:''}
-    <div style="border:1px solid var(--border);border-radius:8px;padding:4px 16px;background:#fff;margin-bottom:14px">
-      ${r.hours?`<div class="info-row"><span class="ir-icon">🕐</span><span class="ir-label">Hours</span><span class="ir-val">${r.hours}</span></div>`:''}
-      ${r.phone?`<div class="info-row"><span class="ir-icon">📞</span><span class="ir-label">Phone</span><span class="ir-val"><a href="tel:${r.phone}" class="ir-link">${r.phone}</a></span></div>`:''}
-      ${r.website?`<div class="info-row"><span class="ir-icon">🌐</span><span class="ir-label">Website</span><span class="ir-val"><a href="${r.website}" target="_blank" class="ir-link">Visit website ↗</a></span></div>`:''}
-      <div class="info-row"><span class="ir-icon">💴</span><span class="ir-label">Price</span><span class="ir-val">${r.price}</span></div>
-      <div class="info-row"><span class="ir-icon">📝</span><span class="ir-label">Reviews</span><span class="ir-val">${r.reviewCount.toLocaleString()}</span></div>
-    </div>
-    <div class="trust-section">
-      <div style="font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;font-weight:500">Practical Info</div>
-      <div class="trust-grid">${trustItems}</div>
-    </div>
-    ${r.tips?`<div style="margin-top:14px;padding:14px 16px;background:var(--cream);border-radius:8px"><div style="font-size:10px;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:500">💡 Traveler Tips</div><div style="font-size:13px;color:var(--stone);line-height:1.65">${r.tips}</div></div>`:''}`;
-}
-
-// ═══════════════════════════════════════
-// RESERVE TAB (Layer 2)
-// ═══════════════════════════════════════
-let selectedSlot = null;
-
-function buildReserveTab(r){
-  const fee = r.reservation_fee || 440;
-  const isWalkIn = r.trust?.no_reservation;
-  const el = document.getElementById('reserveTabContent');
-  if(isWalkIn && fee === 0){
-    el.innerHTML=`<div class="res-status success">
-      <div style="font-size:40px;margin-bottom:10px">⚡</div>
-      <div style="font-size:16px;font-weight:600;margin-bottom:6px">No reservation needed!</div>
-      <div style="font-size:13px;color:var(--stone)">${r.name} welcomes walk-in customers. No booking required — just show up!</div>
-      <div style="margin-top:14px"><a href="${gmapUrl(r)}" target="_blank" class="gmap-btn gmap-primary" style="display:inline-flex">🗺 Get Directions</a></div>
-    </div>`;
-    return;
-  }
-  // Destroy previous Stripe elements
-  if(window._stripeCardElement){ try{window._stripeCardElement.destroy();}catch(e){} window._stripeCardElement=null; }
-  // Generate demo time slots for the next 3 days
-  const slots = generateSlots();
-  selectedSlot = null;
-  el.innerHTML=`
-    <div class="res-form-box">
-      <div style="font-size:12px;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;font-weight:500">Select Date & Time</div>
-      <div class="res-slots" id="resSlots">
-        ${slots.map((s,i)=>`
-          <div class="res-slot ${s.full?'full':''}" onclick="${s.full?'':'selectSlot('+i+', this)'}" data-slot='${JSON.stringify(s)}'>
-            <div class="res-slot-time">${s.label}</div>
-            <div class="res-slot-avail">${s.full?'Full':'Available'}</div>
-          </div>`).join('')}
-      </div>
-      <div class="form-2col">
-        <div><label class="fl">Your Name</label><input class="fi" id="resName" placeholder="e.g. Sarah" value="${currentUser?.user_metadata?.name||''}"></div>
-        <div><label class="fl">Email</label><input class="fi" id="resEmail" type="email" placeholder="you@example.com" value="${currentUser?.email||''}"></div>
-      </div>
-      <div class="form-2col" style="margin-top:12px">
-        <div><label class="fl">Party size</label>
-          <select class="fs" id="resParty" onchange="updateResPriceSummary(${fee})">
-            <option value="1">1 person</option><option value="2">2 people</option>
-            <option value="3">3 people</option><option value="4">4 people</option>
-          </select>
-        </div>
-        <div><label class="fl">Meal</label>
-          <select class="fs" id="resMeal">
-            <option value="lunch">Lunch</option><option value="dinner">Dinner</option>
-          </select>
-        </div>
-      </div>
-      <div style="margin-top:12px"><label class="fl">Special requests (optional)</label>
-        <input class="fi" id="resRequests" placeholder="Allergies, dietary needs, occasion…">
-      </div>
-    </div>
-    <div class="res-price-box" id="resPriceBox">
-      <div class="res-price-row"><span style="color:var(--stone)">Platform fee (¥${fee} × 1 guest)</span><span>¥${fee.toLocaleString()}</span></div>
-      <div class="res-price-row"><span style="color:var(--stone)">Meal charges</span><span>Pay at restaurant</span></div>
-      <div class="res-price-row total"><span>Today's charge</span><span style="color:var(--red)">¥${fee.toLocaleString()}</span></div>
-    </div>
-    <div id="resStripeWrap">
-      <div style="font-size:11px;color:var(--stone);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:500">💳 Payment — Secure via Stripe</div>
-      <div class="stripe-element-wrap" id="cardElement">
-        <div style="font-size:12px;color:var(--stone);padding:4px 0">
-          ${stripe ? '' : '⚠️ Add your Stripe key to enable card payments.'}
-        </div>
-      </div>
-      <div style="display:flex;gap:12px;margin-bottom:6px;font-size:11px;color:var(--fog)">
-        <span>🔒 SSL encrypted</span><span>💳 Visa · Mastercard · AMEX · JCB</span>
-      </div>
-    </div>
-    <button class="btn-submit" style="width:100%;padding:12px;font-size:14px" onclick="submitReservation(${JSON.stringify(r.id)}, ${fee})" id="resSubmitBtn">
-      <span>🔒 Reserve &amp; Pay → ¥${fee.toLocaleString()}</span>
-    </button>
-    <div style="text-align:center;font-size:11px;color:var(--fog);margin-top:8px">Cancel up to 24h before for a full refund · Meal cost paid at restaurant</div>`;
-  // Mount Stripe Elements after render
-  setTimeout(()=>mountStripeElement(), 50);
-}
-
-function generateSlots(){
-  const slots=[];
-  const now=new Date();
-  const lunchTimes=['12:00','12:30','13:00','13:30'];
-  const dinnerTimes=['18:00','18:30','19:00','19:30','20:00'];
-  for(let d=1;d<=3;d++){
-    const date=new Date(now);date.setDate(now.getDate()+d);
-    const dateStr=date.toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'});
-    const iso=date.toISOString().split('T')[0];
-    [...lunchTimes,...dinnerTimes].forEach(t=>{
-      slots.push({
-        label:`${dateStr} ${t}`,
-        datetime:`${iso}T${t}:00`,
-        full:Math.random()<0.25,
-        meal:lunchTimes.includes(t)?'lunch':'dinner'
-      });
-    });
-  }
-  return slots.slice(0,9);
-}
-
-function selectSlot(idx,el){
-  selectedSlot=JSON.parse(el.dataset.slot);
-  document.querySelectorAll('.res-slot').forEach(s=>s.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-function updateResPriceSummary(fee){
-  const party=parseInt(document.getElementById('resParty').value)||1;
-  const total=fee*party;
-  document.getElementById('resPriceBox').innerHTML=`
-    <div class="res-price-row"><span style="color:var(--stone)">Platform fee (¥${fee} × ${party} guest${party>1?'s':''})</span><span>¥${total.toLocaleString()}</span></div>
-    <div class="res-price-row"><span style="color:var(--stone)">Meal charges</span><span>Pay at restaurant</span></div>
-    <div class="res-price-row total"><span>Today's charge</span><span style="color:var(--red)">¥${total.toLocaleString()}</span></div>`;
-  document.getElementById('resSubmitBtn').textContent=`Confirm Reservation → ¥${total.toLocaleString()}`;
-}
-
-// Mount Stripe Card Element
-function mountStripeElement(){
-  if(!stripe){
-    document.getElementById('cardElement').innerHTML=`
-      <div style="padding:10px;font-size:12px;color:var(--stone);background:var(--cream);border-radius:5px">
-        💳 Card payment: Add your Stripe publishable key to <code>STRIPE_KEY</code> in the config to enable live payments.
-        <br>For now, reservations are saved without charging.
-      </div>`;
-    return;
-  }
-  const elements = stripe.elements({locale:'en'});
-  window._stripeCardElement = elements.create('card',{
-    style:{
-      base:{fontFamily:'Noto Sans JP, sans-serif',fontSize:'14px',color:'#0d0b08',
-            '::placeholder':{color:'#b8ad9e'}},
-      invalid:{color:'#c0392b'}
-    }
-  });
-  window._stripeCardElement.mount('#cardElement');
-}
-
-async function submitReservation(restaurantId, fee){
-  const name=document.getElementById('resName')?.value.trim();
-  const email=document.getElementById('resEmail')?.value.trim();
-  const party=parseInt(document.getElementById('resParty')?.value)||1;
-  const meal=document.getElementById('resMeal')?.value||'dinner';
-  const requests=document.getElementById('resRequests')?.value.trim()||'';
-  if(!name||!email)return showToast('Please enter your name and email.');
-  if(!selectedSlot)return showToast('Please select a date and time slot.');
-  if(!/^[^@]+@[^@]+\.[^@]+$/.test(email))return showToast('Please enter a valid email address.');
-  const btn=document.getElementById('resSubmitBtn');
-  if(!btn)return;
-  btn.disabled=true;
-  btn.innerHTML='<span style="display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:inline-block"></span>Processing…</span>';
-  const total=fee*party;
-  const confNum='TB'+Math.random().toString(36).substring(2,8).toUpperCase();
-  const r=DB.find(x=>x.id===restaurantId||x._sbId===restaurantId);
-  // Step 1: Process Stripe payment (if key configured)
-  let stripePaymentId=null;
-  if(stripe&&window._stripeCardElement){
-    try{
-      const {paymentMethod,error:pmError}=await stripe.createPaymentMethod({
-        type:'card',card:window._stripeCardElement,
-        billing_details:{name,email}
-      });
-      if(pmError){btn.disabled=false;btn.innerHTML='🔒 Reserve & Pay → ¥'+total.toLocaleString();return showToast('Card error: '+pmError.message);}
-      stripePaymentId=paymentMethod.id;
-      // In production: call your Edge Function to create+confirm PaymentIntent
-      // const res = await fetch(SUPABASE_URL+'/functions/v1/create-payment',{
-      //   method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON},
-      //   body:JSON.stringify({amount:total,currency:'jpy',payment_method:stripePaymentId,
-      //     metadata:{conf:confNum,restaurant:r?.name,guest:name,email}})
-      // });
-    }catch(e){ console.warn('Stripe error:',e); }
-  }
-  // Step 2: Save reservation to Supabase
-  const resData={name,email,party_size:party,meal_type:meal,
-    special_requests:requests,datetime:selectedSlot.datetime,
-    fee_yen:total,stripe_payment_id:stripePaymentId||null};
-  await saveReservationToDB(restaurantId,resData);
-  // Step 3: Send confirmation email via Supabase Edge Function
+async function submitHost() {
+  var n=document.getElementById('host-name').value;
+  var em=document.getElementById('host-email').value;
+  if(!n||!em){showToast('Please fill in your name and email');return;}
   try{
-    await fetch(SUPABASE_URL+'/functions/v1/send-reservation-email',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON},
-      body:JSON.stringify({
-        to:email,guest_name:name,
-        restaurant_name:r?.name||'Restaurant',
-        restaurant_address:r?.address_en||r?.address_ja||'',
-        datetime:selectedSlot.label,
-        party_size:party,meal_type:meal,
-        conf_number:confNum,total_yen:total,
-        gmap_url:r?gmapUrl(r):''
-      })
+    await sb.from('host_applications').insert({name:n,email:em,experience_title:document.getElementById('host-exptitle').value,category:document.getElementById('host-cat').value,description:document.getElementById('host-desc').value,status:'pending'});
+  }catch(err){}
+  showToast('Application received! We will be in touch within 48 hours.');
+  closeHostModal();
+}
+
+async function runAiMatch() {
+  var interest=document.getElementById('ai-interest').value;
+  var budget=document.getElementById('ai-budget').value;
+  var group=document.getElementById('ai-group').value;
+  var duration=document.getElementById('ai-duration').value;
+  if(!interest.trim()&&!budget){showToast('Please describe your interests first');return;}
+  var rEl=document.getElementById('ai-results');
+  var tEl=document.getElementById('ai-results-text');
+  var cEl=document.getElementById('ai-rec-grid');
+  rEl.classList.add('show');
+  tEl.textContent='Analyzing your preferences...';
+  cEl.innerHTML='';
+  var explist=EXPS.map(function(e){return e.name+' (yen '+e.price+', '+e.cat+', '+e.dur+')';}).join('; ');
+  var prompt='You are SUGOOOI JAPAN AI matcher for inbound tourists in Japan. User: interests='+(interest||'not specified')+', budget='+(budget||'flexible')+', group='+(group||'not specified')+', duration='+(duration||'flexible')+'. Available: '+explist+'. Respond ONLY in valid JSON no markdown: {"summary":"2 sentences","recommendations":[{"name":"name","reason":"1 sentence","match":"XX%","price":"yen X,XXX"}]}';
+  try {
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})});
+    var data=await resp.json();
+    var raw=((data.content&&data.content[0])?data.content[0].text:'').replace(/```json|```/g,'').trim();
+    var parsed=JSON.parse(raw);
+    tEl.textContent=parsed.summary;
+    var rh='';
+    (parsed.recommendations||[]).forEach(function(r){
+      var found=null;
+      var rl=r.name.toLowerCase();
+      EXPS.forEach(function(e){if(e.name.toLowerCase().indexOf(rl.split(' ')[0])>=0)found=e;});
+      rh+='<div class="aircard"'+(found?' onclick="openBooking('+found.id+')"':'')+'>'; 
+      rh+='<div class="aircardname">'+(found?found.em+' ':'')+r.name+'</div>';
+      rh+='<div class="aircardwhy">'+r.reason+'</div>';
+      rh+='<div class="aircardprice">'+r.match+' match &middot; '+r.price+'</div>';
+      rh+='</div>';
     });
-  }catch(e){ /* Edge Function not configured yet, skip */ }
-  // Step 4: Show confirmation
-  const slotDisplay=selectedSlot.label;
-  document.getElementById('reserveTabContent').innerHTML=`
-    <div class="res-status success">
-      <div style="font-size:48px;margin-bottom:8px">✅</div>
-      <div style="font-size:16px;font-weight:600;color:var(--moss);margin-bottom:6px">Reservation Confirmed!</div>
-      <div class="res-confirmation-num">#${confNum}</div>
-      <div style="background:#fff;border-radius:8px;padding:14px 18px;text-align:left;margin:14px 0;border:1px solid var(--border)">
-        <div style="display:flex;flex-direction:column;gap:7px;font-size:13px">
-          <div>🏪 <strong>${r?.name||'Restaurant'}</strong></div>
-          <div>📅 ${slotDisplay} · ${party} guest${party>1?'s':''} · ${meal}</div>
-          ${r?.address_ja?`<div>📍 ${r.address_ja}</div>`:''}
-          <div>💴 Platform fee ¥${total.toLocaleString()} charged · Meal paid at restaurant</div>
-        </div>
-      </div>
-      <div style="font-size:13px;color:var(--stone);margin-bottom:14px">
-        Confirmation email sent to <strong>${email}</strong>
-      </div>
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <a href="${r?gmapUrl(r):'#'}" target="_blank" class="gmap-btn gmap-primary">🗺 Get Directions</a>
-        <button class="gmap-btn gmap-secondary" onclick="addToCalendar('${confNum}','${r?.name||''}','${slotDisplay}')">📆 Add to Calendar</button>
-      </div>
-      <div style="margin-top:14px;font-size:11px;color:var(--fog)">Need to cancel? Reply to your confirmation email</div>
-    </div>`;
-  showToast(tt('toastReserved'));
-}
-
-// Add to calendar (ICS download)
-function addToCalendar(conf, restaurant, datetimeStr){
-  try{
-    const dt=new Date(selectedSlot?.datetime||Date.now());
-    const pad=n=>String(n).padStart(2,'0');
-    const fmt=d=>`${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
-    const end=new Date(dt.getTime()+90*60000);
-    const ics=[
-      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TABERU//EN',
-      'BEGIN:VEVENT',
-      `UID:${conf}@taberu.app`,
-      `DTSTART:${fmt(dt)}`,
-      `DTEND:${fmt(end)}`,
-      `SUMMARY:Dinner at ${restaurant}`,
-      `DESCRIPTION:TABERU Reservation #${conf}`,
-      'END:VEVENT','END:VCALENDAR'
-    ].join('\r\n');
-    const a=document.createElement('a');
-    a.href='data:text/calendar;charset=utf8,'+encodeURIComponent(ics);
-    a.download=`taberu-${conf}.ics`;a.click();
-    showToast('Calendar invite downloaded 📆');
-  }catch(e){showToast('Could not generate calendar file');}
-}
-
-// ═══════════════════════════════════════
-// REVIEWS
-// ═══════════════════════════════════════
-function renderReviewFeed(r){
-  const langLabels={all:'🌍 All',en:'🇺🇸🇬🇧 EN',zh:'🇨🇳 中文',ko:'🇰🇷 한국어'};
-  document.getElementById('reviewFilterRow').innerHTML=['all','en','zh','ko'].map(l=>`
-    <button class="rfbtn ${reviewCommunityFilter===l?'active':''}" onclick="setReviewFilter('${l}',${JSON.stringify(r.id)})">${langLabels[l]}</button>`).join('');
-  const filtered=reviewCommunityFilter==='all'?r.reviews:r.reviews.filter(rv=>rv.lang===reviewCommunityFilter);
-  const feed=document.getElementById('reviewFeed');
-  if(!filtered.length){feed.innerHTML=`<div style="text-align:center;padding:24px;color:var(--stone);font-size:13px">No reviews in this language yet.<br>Be the first!</div>`;return;}
-  feed.innerHTML=filtered.map((rv,i)=>`
-    <div class="rv-item">
-      <div class="rv-head">
-        <div class="rv-user">
-          <div class="rv-avatar">${rv.name[0]}</div>
-          <div><div class="rv-name">${rv.name} <span class="rv-community-badge">${rv.country}</span></div><div class="rv-star">${starsHtml(rv.stars)}</div></div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-          <span class="rv-date">${rv.date}</span>
-          ${rv.photos?.length?'📸':''}
-        </div>
-      </div>
-      <div class="rv-text">${rv.text}</div>
-      ${rv.photos?.length?`<div class="rv-imgs">${rv.photos.map(p=>`<img class="rv-img" src="${p}" onclick="openLightbox('${p}')" alt="">`).join('')}</div>`:''}
-      <div class="rv-foot">
-        <button class="ai-btn" id="aibtn-${r.id}-${i}" onclick="aiTranslate(${JSON.stringify(r.id)},${i})">✦ AI Analyze</button>
-      </div>
-      <div class="ai-box" id="aibox-${r.id}-${i}">
-        <div class="ai-box-head"><div class="ai-gem"></div><span class="ai-badge">AI Summary · Translation · Tips</span></div>
-        <div class="ai-loading-row" id="ai-load-${r.id}-${i}"><div class="ai-dots"><span></span><span></span><span></span></div><span class="ai-loading-txt">Analyzing with Claude…</span></div>
-        <div class="ai-content" id="ai-cont-${r.id}-${i}" style="display:none"></div>
-      </div>
-    </div>`).join('');
-}
-function setReviewFilter(l,id){
-  reviewCommunityFilter=l;
-  const r=DB.find(x=>x.id===id);if(r)renderReviewFeed(r);
-}
-
-// ═══════════════════════════════════════
-// AI TRANSLATE
-// ═══════════════════════════════════════
-async function aiTranslate(rid,idx){
-  const r=DB.find(x=>x.id===rid);
-  const allRvs=reviewCommunityFilter==='all'?r.reviews:r.reviews.filter(rv=>rv.lang===reviewCommunityFilter);
-  const rv=allRvs[idx];
-  const btn=document.getElementById(`aibtn-${rid}-${idx}`);
-  const box=document.getElementById(`aibox-${rid}-${idx}`);
-  const load=document.getElementById(`ai-load-${rid}-${idx}`);
-  const cont=document.getElementById(`ai-cont-${rid}-${idx}`);
-  if(rv.aiData){box.classList.add('show');load.style.display='none';cont.style.display='block';cont.innerHTML=rv.aiData;return;}
-  btn.disabled=true;box.classList.add('show');load.style.display='flex';cont.style.display='none';
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:`You are an AI assistant for TABERU, a Tokyo food review app for international travelers.
-Analyze this review and respond in this EXACT HTML format:
-<span class="ai-lang-tag">Detected: [Language Name]</span>
-<div class="ai-section"><div class="ai-section-label">English Translation</div>[Translate to English if not already. If English, write "Already in English — summarized below."]</div>
-<div class="ai-section"><div class="ai-section-label">✦ Summary</div>[2-3 sentences capturing the reviewer's key impressions, specific dishes, and overall vibe. Be vivid and helpful for travelers deciding whether to visit.]</div>
-<div class="ai-section"><div class="ai-section-label">🗺 Practical Tips from this Review</div>
-<div class="ai-practical">
-<div class="ai-prac-item"><div class="ai-prac-label">Best dish mentioned</div>[specific dish or "Not mentioned"]</div>
-<div class="ai-prac-item"><div class="ai-prac-label">Wait time</div>[if mentioned, else "Not mentioned"]</div>
-<div class="ai-prac-item"><div class="ai-prac-label">Value for money</div>[based on sentiment]</div>
-<div class="ai-prac-item"><div class="ai-prac-label">Recommended for</div>[solo/couples/groups/families]</div>
-</div></div>
-Review text: "${rv.text}"
-Restaurant: ${r.name}, ${r.city}
-Be concise. Use relevant food emoji naturally.`}]})
+    cEl.innerHTML=rh;
+  } catch(err) {
+    tEl.textContent='Based on your preferences, here are our top picks:';
+    var fh='';
+    [1,5,2].forEach(function(fid){
+      var fe=null;EXPS.forEach(function(e){if(e.id===fid)fe=e;});
+      if(fe){fh+='<div class="aircard" onclick="openBooking('+fid+')"><div class="aircardname">'+fe.em+' '+fe.name+'</div><div class="aircardwhy">Perfect match for your interests</div><div class="aircardprice">95% match &middot; &#165;'+fe.price.toLocaleString()+'</div></div>';}
     });
-    const data=await res.json();
-    const txt=data.content?.map(b=>b.text||'').join('')||'Analysis unavailable.';
-    rv.aiData=txt;load.style.display='none';cont.style.display='block';cont.innerHTML=txt;
-  }catch(e){load.style.display='none';cont.style.display='block';cont.innerHTML='<span style="color:rgba(255,255,255,.5)">Analysis unavailable. Please try again.</span>';}
-  btn.disabled=false;
+    cEl.innerHTML=fh;
+  }
 }
 
-// ═══════════════════════════════════════
-// WRITE REVIEW (with Supabase save)
-// ═══════════════════════════════════════
-function setStar(n){selectedStar=n;updateStars();}
-function updateStars(){document.querySelectorAll('.sp-star').forEach((b,i)=>b.classList.toggle('lit',i<selectedStar));}
-function toggleBadge(el){
-  const key=el.dataset.badge;el.classList.toggle('on');
-  if(pendingBadges.has(key))pendingBadges.delete(key);else pendingBadges.add(key);
+var CHATS=[{name:'Tsukiji Cooking Studio',em:'🍳'},{name:'Fushimi Sake Tour',em:'🍶'}];
+function selectChat(idx){
+  document.querySelectorAll('.chatitem').forEach(function(el,i){el.classList.toggle('active',i===idx);});
+  document.getElementById('chat-host-av').textContent=CHATS[idx].em;
+  document.getElementById('chat-host-name').textContent=CHATS[idx].name;
 }
-function handlePhotos(e){
-  Array.from(e.target.files).forEach(f=>{
-    const rd=new FileReader();rd.onload=ev=>{pendingPhotos.push(ev.target.result);renderPhotoPreview();};rd.readAsDataURL(f);
-  });
+document.getElementById('chat-input').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMsg();}});
+function sendChatMsg(){
+  var inp=document.getElementById('chat-input');
+  var txt=inp.value.trim();if(!txt)return;
+  var msgs=document.getElementById('chat-messages');
+  msgs.innerHTML+='<div class="msg sent"><div class="msgav">&#128100;</div><div><div class="msgbub">'+txt+'</div><div class="msgt">Now</div></div></div>';
+  inp.value='';msgs.scrollTop=msgs.scrollHeight;
+  setTimeout(function(){msgs.innerHTML+='<div class="msg recv"><div class="msgav">&#127859;</div><div><div class="msgbub">Thank you for your message! We will get back to you shortly.</div><div class="msgt">Now</div></div></div>';msgs.scrollTop=msgs.scrollHeight;},1200);
 }
-function renderPhotoPreview(){
-  document.getElementById('photoPreview').innerHTML=pendingPhotos.map((s,i)=>`
-    <div style="position:relative;display:inline-block">
-      <img class="ph-thumb" src="${s}" alt="">
-      <button class="ph-del" onclick="removePhoto(${i})">✕</button>
-    </div>`).join('');
+function markArrived(){
+  showToast('Arrival confirmed! Deposit released. Enjoy your experience!');
+  var msgs=document.getElementById('chat-messages');
+  msgs.innerHTML+='<div class="msgsys">&#9989; <strong>Guest arrival confirmed.</strong> Deposit of &#165;2,000 released. Payment complete!</div>';
+  msgs.scrollTop=msgs.scrollHeight;
 }
-function removePhoto(i){pendingPhotos.splice(i,1);renderPhotoPreview();}
-
-async function submitReview(){
-  if(!activeId)return;
-  const name=document.getElementById('writerName').value.trim();
-  const country=document.getElementById('writerCountry').value.trim();
-  const text=document.getElementById('reviewText').value.trim();
-  if(!name||!text||!selectedStar){showToast(tt('toastFill'));return;}
-  const r=DB.find(x=>x.id===activeId);if(!r)return;
-  const langMap={'🇰🇷':'ko','🇨🇳':'zh','🇹🇼':'zh','한국':'ko','china':'zh','taiwan':'zh','korea':'ko'};
-  const detectedLang=Object.entries(langMap).find(([k])=>country.toLowerCase().includes(k))?.[1]||'en';
-  pendingBadges.forEach(b=>{if(!r.trust[b])r.trust[b]=true;});
-  const reviewData={
-    name,country:country||'🌍 Traveler',lang:detectedLang,
-    stars:selectedStar,text,date:'Just now',
-    photos:[...pendingPhotos],aiData:null,
-    badges:Object.fromEntries([...pendingBadges].map(k=>[k,true]))
-  };
-  // Save to Supabase
-  const btn=document.getElementById('btn-post');
-  btn.disabled=true;btn.textContent='Posting…';
-  await saveReviewToDB(activeId,reviewData);
-  btn.disabled=false;btn.textContent=tt('btnPost');
-  r.reviews.unshift(reviewData);
-  r.reviewCount++;
-  r.rating=Math.round(r.reviews.reduce((s,v)=>s+v.stars,0)/r.reviews.length*10)/10;
-  renderReviewFeed(r);renderCards();renderRanking();
-  switchTab('reviews',document.getElementById('tab-reviews'));
-  showToast(tt('toastPosted'));
-  document.getElementById('writerName').value='';
-  document.getElementById('writerCountry').value='';
-  document.getElementById('reviewText').value='';
-  selectedStar=0;updateStars();pendingPhotos=[];pendingBadges=new Set();
-  document.querySelectorAll('.badge-toggle').forEach(b=>b.classList.remove('on'));
-  document.getElementById('photoPreview').innerHTML='';
-}
-
-// ═══════════════════════════════════════
-// ADD RESTAURANT
-// ═══════════════════════════════════════
-function openAddOverlay(){document.getElementById('addOverlay').classList.add('open');}
-function openWriteOverlay(){openDetail([...DB].sort((a,b)=>b.rating-a.rating)[0].id);}
-function closeAdd(){document.getElementById('addOverlay').classList.remove('open');}
-async function addRestaurant(){
-  const name=document.getElementById('addName').value.trim();
-  const city=document.getElementById('addCity').value.trim();
-  if(!name||!city){showToast(tt('toastFill'));return;}
-  const cat=document.getElementById('addCat').value;
-  const price=document.getElementById('addPrice').value;
-  const area=document.getElementById('addArea').value;
-  const tags=document.getElementById('addTags').value.split(',').map(s=>s.trim()).filter(Boolean);
-  const desc=document.getElementById('addDesc').value.trim();
-  const btn=document.getElementById('add-submit');
-  btn.disabled=true;btn.textContent='Saving…';
-  // Save to Supabase
-  let sbId=null;
-  try{
-    const {data:{session}}=await sb.auth.getSession();
-    const {data,error}=await sb.from('restaurants').insert({
-      owner_id:session?.user?.id||null,
-      name,name_ja:name,city:city+', Tokyo',area,category:cat,
-      emoji:EMOJI_MAP[cat]||'🍽️',price_range:price,
-      tags:tags.length?tags:['New'],tips:desc||'',
-      address_en:city+', Tokyo',gmap_query:name+' '+city+' Tokyo',
-      map_x:20+Math.random()*55,map_y:20+Math.random()*55,
-      trust_badges:{english_menu:false,card_ok:false,halal:false,vegan:false,solo_ok:false,no_reservation:false}
-    }).select('id').single();
-    if(!error&&data)sbId=data.id;
-  }catch(e){}
-  const newR={id:sbId||Date.now(),_sbId:sbId,name,city:city+', Tokyo',area,category:cat,
-    emoji:EMOJI_MAP[cat]||'🍽️',price,rating:0,reviewCount:0,
-    tags:tags.length?tags:['New'],tips:desc||'—',
-    phone:'',website:'',hours:'',reservation_fee:440,
-    address_ja:'',address_en:city+', Tokyo',gmap_query:name+' '+city+' Tokyo',
-    trust:{english_menu:false,card_ok:false,halal:false,vegan:false,solo_ok:false,no_reservation:false},
-    mapX:20+Math.random()*55,mapY:20+Math.random()*55,photos:[],reviews:[]};
-  if(desc)newR.reviews.push({name:'Founder',country:'🌍',lang:'en',stars:5,text:desc,date:'Just now',photos:[],aiData:null});
-  DB.push(newR);
-  renderCards();renderRanking();renderMapPins();
-  btn.disabled=false;btn.textContent=tt('addSubmit');
-  closeAdd();showToast(tt('toastAdded'));
-}
-
-// ═══════════════════════════════════════
-// LIGHTBOX & TOAST
-// ═══════════════════════════════════════
-function openLightbox(src){document.getElementById('lbImg').src=src;document.getElementById('lightbox').classList.add('open');}
+function showCancelPolicy(){showToast('Free cancellation up to 48 hours before. Deposit refunded automatically.');}
 function showToast(msg){
-  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),3200);
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},3000);
 }
-
-// ═══════════════════════════════════════
-// AUTH MODAL HTML
-// ═══════════════════════════════════════
-// (already in HTML, just wire up)
-
-
-// ═══════════════════════════════════════
-// GOOGLE PLACES SEARCH
-// Activates when PLACES_KEY is set
-// ═══════════════════════════════════════
-const PLACES_KEY = ''; // Paste your key: console.cloud.google.com → Places API New
-
-async function searchPlaces(query) {
-  if (!PLACES_KEY) return null;
-  try {
-    const res = await fetch(
-    );
-    const data = await res.json();
-    return data.results || [];
-  } catch(e) { return null; }
-}
-
-async function getPlaceDetails(placeId) {
-  if (!PLACES_KEY) return null;
-  try {
-    const fields = 'name,formatted_address,formatted_phone_number,website,opening_hours,rating,price_level,types,geometry,photos';
-    const res = await fetch(
-    );
-    const data = await res.json();
-    return data.result || null;
-  } catch(e) { return null; }
-}
-
-// Map Google price_level to TABERU format
-function priceLevel(n) {
-  return ['¥','¥','¥¥','¥¥¥','¥¥¥¥'][Math.min(n||1, 4)];
-}
-
-// Auto-fill add form from Places data
-async function fillFromPlaces() {
-  const query = document.getElementById('addName').value.trim();
-  if (!query) return showToast('Enter a restaurant name first');
-  if (!PLACES_KEY) {
-    showToast('Add your Google Places API key to enable auto-fill 🗺');
-    return;
-  }
-  const btn = document.getElementById('placesSearchBtn');
-  btn.disabled = true; btn.textContent = 'Searching…';
-  const results = await searchPlaces(query);
-  if (!results?.length) {
-    showToast('No results found. Try a more specific name.');
-    btn.disabled = false; btn.textContent = '🔍 Auto-fill from Google';
-    return;
-  }
-  // Show picker if multiple results
-  const place = results[0];
-  const details = await getPlaceDetails(place.place_id);
-  if (details) {
-    document.getElementById('addCity').value    = extractArea(details.formatted_address);
-    document.getElementById('addDesc').value    = `Google Rating: ${details.rating || '?'}/5 · ${details.formatted_address}`;
-    document.getElementById('addPrice').value   = priceLevel(details.price_level);
-    if (details.formatted_phone_number) {
-      // store in a temp var for later use
-      window._pendingPhone = details.formatted_phone_number;
-    }
-    showToast(`Auto-filled from Google Maps ✅ ${details.name}`);
-  }
-  btn.disabled = false; btn.textContent = '🔍 Auto-fill from Google';
-}
-
-function extractArea(address) {
-  // Extract neighborhood from Japanese address
-  const areas = ['Shinjuku','Shibuya','Ginza','Asakusa','Roppongi','Ikebukuro','Akihabara','Harajuku','Ueno','Nakameguro'];
-  for (const a of areas) {
-    if (address?.includes(a)) return a;
-  }
-  return address?.split(',')[0] || 'Tokyo';
-}
-
-// Bulk import from Google Places (for rapid restaurant onboarding)
-async function bulkImportFromPlaces(searchTerms) {
-  if (!PLACES_KEY) { showToast('Google Places API key required'); return; }
-  const results = [];
-  for (const term of searchTerms) {
-    const places = await searchPlaces(term);
-    if (places?.length) results.push(...places.slice(0, 3));
-    await new Promise(r => setTimeout(r, 200)); // rate limit
-  }
-  showToast(`Found ${results.length} restaurants from Google Places`);
-  return results;
-}
-
-// USAGE: Set PLACES_KEY above, then uncomment the Google Maps script tag in <head>.
-// For bulk import: bulkImportFromPlaces(['Jiro Tokyo', 'Narisawa Tokyo', ...])
-//   then save each result: sb.from('restaurants').insert(place)
-
-// ═══════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════
-async function init(){
-  // Try to load restaurants from Supabase; fall back to seed data
-  const connected = await loadRestaurantsFromDB();
-  if(connected) console.log('✅ Connected to Supabase');
-  else console.log('ℹ️ Using seed data (configure SUPABASE_URL to connect)');
-  await loadSession();
-  await loadPlanner();
-  renderCards();
-  renderRanking();
-  renderMapPins();
-  // Handle URL parameters (from QR code scans)
-  handleURLParams();
-}
-init();
-
-// ═══════════════════════════════════════
-// URL PARAMETER HANDLING
-// QR code scan: index.html?review=1&rid=xxx&lang=ko
-// ═══════════════════════════════════════
-function handleURLParams(){
-  const p = new URLSearchParams(window.location.search);
-  const isReview = p.get('review') === '1';
-  const rid      = p.get('rid');
-  const lang     = p.get('lang');
-  const resId    = p.get('res'); // direct to Reserve tab
-
-  // Set language from QR
-  if(lang && ['en','zh','ko'].includes(lang)){
-    setLang(lang);
-  }
-
-  // Open restaurant modal from QR
-  if(rid){
-    // Try numeric ID first, then string match
-    const r = DB.find(x => String(x.id) === rid || String(x._sbId) === rid);
-    if(r){
-      setTimeout(()=>{
-        openDetail(r.id);
-        if(isReview){
-          // Go straight to write tab
-          setTimeout(()=>switchTab('write', document.getElementById('tab-write')), 300);
-          showToast(lang==='zh'?'写下您的评价 ✍️':lang==='ko'?'리뷰를 작성해 주세요 ✍️':'Write your review ✍️');
-        } else if(resId){
-          setTimeout(()=>switchTab('reserve', document.getElementById('tab-reserve')), 300);
-        }
-      }, 600);
-    }
-  }
-
-  // Clean up URL without reload
-  if(p.toString()){
-    window.history.replaceState({}, '', window.location.pathname);
-  }
-}
-
+renderExps();
 </script>
 </body>
 </html>
